@@ -26,43 +26,83 @@ class DataInputManagement extends Component
 
 
 
+    // public function export($id)
+    // {
+    //     $boost = DataInput::find($id);
+    //     // Render the HTML using Blade
+    //     $html = View::make('livewire.img-export', [
+    //         'page_name' => $boost->page_name ?? 'Sample Page',
+    //         'boost_type_id' => $boost->boostType->name ,
+    //         'start_date' => $boost->start_date ? Carbon::parse($boost->start_date)->format('Y-m-d') : now()->format('Y-m-d'),
+    //         'status' => is_int($boost->status) ? BoostStatus::from($boost->status)->label() : BoostStatus::Charge->label(),
+    //         'amount' => $boost->amount ,
+    //         'generated_date' => now()->format('d-m-Y'),
+    //         'mm_kyat' => $boost->mm_kyat ,
+    //         'total_amount' => $boost->total_amount,
+    //     ])->render();
+
+
+    //     $mpdf = new Mpdf([
+    //         'fontDir' => [storage_path('fonts')],
+    //         'fontdata' => [
+    //             'myanmar' => [
+    //                 'R' => 'padauk.ttf',  // Font file path
+    //                 'B' => 'padauk.ttf',  // Font file path for bold
+    //             ]
+    //             ],
+    //         'format' => 'A4',
+    //         'mode' => 'utf-8',
+    //     ]);
+
+
+
+
+    //     // $mpdf->SetFont('tharlon');
+    //     $mpdf->WriteHTML($html);
+    //     return response()->streamDownload(function() use ($mpdf) {
+    //         return $mpdf->Output('voucher.pdf', 'D');
+    //     }, 'export_img.pdf');
+    // }
+
+
     public function export($id)
-    {
-        $boost = DataInput::find($id);
-        // Render the HTML using Blade
-        $html = View::make('livewire.img-export', [
-            'page_name' => $boost->page_name ?? 'Sample Page',
-            'boost_type_id' => $boost->boostType->name ,
-            'start_date' => $boost->start_date ? Carbon::parse($boost->start_date)->format('Y-m-d') : now()->format('Y-m-d'),
-            'status' => is_int($boost->status) ? BoostStatus::from($boost->status)->label() : BoostStatus::Charge->label(),
-            'amount' => $boost->amount ,
-            'generated_date' => now()->format('d-m-Y'),
-            'mm_kyat' => $boost->mm_kyat ,
-            'total_amount' => $boost->total_amount,
-        ])->render();
+{
+    $boost = DataInput::find($id);
 
+    // 1. Render HTML
+    $html = View::make('livewire.img-export', [
+        'page_name' => $boost->page_name ?? 'Sample Page',
+        'boost_type_id' => $boost->boostType->name,
+        'start_date' => $boost->start_date ? Carbon::parse($boost->start_date)->format('Y-m-d') : now()->format('Y-m-d'),
+        'status' => is_int($boost->status) ? BoostStatus::from($boost->status)->label() : BoostStatus::Charge->label(),
+        'amount' => $boost->amount,
+        'generated_date' => now()->format('d-m-Y'),
+        'mm_kyat' => $boost->mm_kyat,
+        'total_amount' => $boost->total_amount,
+    ])->render();
 
-        $mpdf = new Mpdf([
-            'fontDir' => [storage_path('fonts')],
-            'fontdata' => [
-                'myanmar' => [
-                    'R' => 'padauk.ttf',  // Font file path
-                    'B' => 'padauk.ttf',  // Font file path for bold
-                ]
-                ],
-            'format' => 'A4',
-            'mode' => 'utf-8',
-        ]);
+    // 2. Save to a temporary HTML file
+    $htmlPath = storage_path('app/temp-voucher.html');
+    file_put_contents($htmlPath, $html);
 
+    // 3. Define output image path
+    $imagePath = storage_path('app/voucher-' . time() . '.png');
 
+    // 4. Convert HTML to image using wkhtmltoimage
+    $command = "wkhtmltoimage --quality 100 --width 800 $htmlPath $imagePath";
+    exec($command);
 
-
-        // $mpdf->SetFont('tharlon');
-        $mpdf->WriteHTML($html);
-        return response()->streamDownload(function() use ($mpdf) {
-            return $mpdf->Output('voucher.pdf', 'D');
-        }, 'export_img.pdf');
+    // 5. Serve the image for download
+    if (file_exists($imagePath)) {
+        return response()->download($imagePath)->deleteFileAfterSend();
+    } else {
+        return response()->json(['error' => 'Failed to generate image'], 500);
     }
+}
+
+
+
+
     public function mount()
     {
         $this->startDate = now()->subDays(30)->format('Y-m-d');
