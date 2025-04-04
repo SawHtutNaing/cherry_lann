@@ -35,14 +35,37 @@
             @enderror
         </div>
         <div class="mb-4">
-            <label class="block text-gray-700">Amount:</label>
-            <input type="number" step="0.01" wire:model="amount"
+            <label class="block text-gray-700">$ Amount:</label>
+            <input type="number" step="0.01" wire:model.live="amount"
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             @error('amount')
                 <span class="text-red-500 "> {{ $message }} </span>
             @enderror
 
         </div>
+        <div class="mb-4">
+            <label class="block text-gray-700">MM Kyat:</label>
+            <input type="number" step="0.01" wire:model.live="mm_kyat"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            @error('mm_kyat')
+                <span class="text-red-500 "> {{ $message }} </span>
+            @enderror
+
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700">Total Amount:</label>
+            {{-- <input  wire:model.live="total_amount"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"> --}}
+                {{ $total_amount }}
+                {{-- @error('total_amount')
+                <span class="text-red-500 "> {{ $message }} </span>
+            @enderror --}}
+
+        </div>
+
+
+
         <div class="mb-4">
             <label class="block text-gray-700">Status:</label>
             <select wire:model="status"

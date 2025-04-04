@@ -106,7 +106,10 @@
 
                 <div class="w-full md:w-1/4">
                     <label for="service_by" class="block text-sm font-medium text-gray-700">Service By</label>
-                    <select wire:model="service_by"
+                    <select
+                    @disabled(auth()->user()->role != 'admin')
+
+                    wire:model="service_by"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">All</option>
                         @foreach ($servicesBys as $servicesBy)
@@ -162,6 +165,8 @@
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Boost Type</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Start Date</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Amount</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">MM Kyat </th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total Amount</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Status</th>
                     {{-- @if (!$isExport)
                         <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Actions</th>
@@ -180,6 +185,8 @@
                             {{ \Carbon\Carbon::parse($dataInput->start_date)->format('d/m/y') }}</td>
 
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->amount }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->mm_kyat }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->total_amount }}</td>
 
                         <td
                             class="px-6 py-4 text-sm {{ $dataInput->status->name == 'Charge' ? 'text-green-600' : 'text-red-600' }}">

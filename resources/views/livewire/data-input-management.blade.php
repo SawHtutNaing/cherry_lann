@@ -45,7 +45,10 @@
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Boost Type</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Start Date</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Amount</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">MM Kyat </th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total Amount </th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Status</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Export</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Actions</th>
                 </tr>
             </thead>
@@ -60,11 +63,23 @@
                             {{ \Carbon\Carbon::parse($dataInput->start_date)->format('d/m/y') }}</td>
 
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->amount }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->mm_kyat }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->total_amount }}</td>
 
                         <td
                             class="px-6 py-4 text-sm {{ $dataInput->status->name == 'Charge' ? 'text-green-600' : 'text-red-600' }}">
                             {{ $dataInput->status->label() }}
                         </td>
+
+
+                        <td
+                        class="px-6 py-4 text-sm">
+                        <button class="px-4 py-2 text-white bg-blue-500 rounded shadow hover:bg-blue-400"  wire:click='export({{ $dataInput->id }})'>
+                            Exprot
+                        </button>
+                    </td>
+
+
                         <td class="px-6 py-4">
                             <a href="{{ route('data-inputs.edit', $dataInput->id) }}"
                                 class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400">Edit</a>

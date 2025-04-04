@@ -21,14 +21,14 @@
                     </x-nav-link>
 
 
-                    @if (auth()->user()->role == 'admin')
+                    {{-- @if (auth()->user()->role == 'admin') --}}
                         <x-nav-link :href="route('report')" :active="request()->routeIs('report')">
                             {{ __('Report') }}
                         </x-nav-link>
                         <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')">
                             {{ __('Users Management') }}
                         </x-nav-link>
-                    @endif
+                    {{-- @endif --}}
 
 
 

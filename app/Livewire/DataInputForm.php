@@ -15,6 +15,8 @@ class DataInputForm extends Component
     public $boost_type_id;
     public $start_date;
     public $amount;
+    public $mm_kyat;
+    public $total_amount;
     public $status;
     public $dataInputId;
 
@@ -27,6 +29,8 @@ class DataInputForm extends Component
             'boost_type_id' => 'required|exists:boost_types,id',
             'start_date' => 'required|date',
             'amount' => 'required|numeric|min:0',
+            'mm_kyat' => 'required|numeric|min:0',
+            'total_amount' => 'required|numeric|min:0',
             'status' => 'required|in:1,2',
 
         ];
@@ -44,6 +48,8 @@ class DataInputForm extends Component
             $this->boost_type_id = $dataInput->boost_type_id;
             $this->start_date = $dataInput->start_date;
             $this->amount = $dataInput->amount;
+            $this->mm_kyat = $dataInput->mm_kyat;
+            $this->total_amount = $dataInput->total_amount;
             $this->status = $dataInput->status->value;
         }
     }
@@ -59,6 +65,8 @@ class DataInputForm extends Component
             'boost_type_id' => $this->boost_type_id,
             'start_date' => $this->start_date,
             'amount' => $this->amount,
+            'mm_kyat' => $this->mm_kyat,
+            'total_amount' => $this->total_amount,
             'status' => $this->status,
         ];
 
@@ -72,6 +80,30 @@ class DataInputForm extends Component
 
         return redirect()->route('dashboard');
     }
+
+
+    public function updatedMmKyat(){
+
+       $this->calculateTotalAmount();
+
+    }
+    public function updatedAmount(){
+       $this->calculateTotalAmount();
+    }
+
+
+
+
+
+    private function calculateTotalAmount()
+    {
+
+        $this->total_amount = ((float)$this->mm_kyat) * ((float)$this->amount);
+
+    }
+
+
+
 
     public function render()
     {

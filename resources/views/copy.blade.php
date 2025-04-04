@@ -308,7 +308,8 @@
                         class="flex flex-col items-center p-6 transition-all bg-white shadow-sm social-icon rounded-2xl hover:shadow-lg"
                         target="_blank">
                         <div class="flex items-center justify-center w-16 h-16 text-white rounded-full"
-                            style="background-color: rgba(104, 56, 168, 1);">
+                            style="background-color: rgba(104, 56, 168, 1);"
+                            >
                             <i class="text-2xl fa-brands fa-viber"></i>
                         </div>
                         <h3 class="mt-4 text-lg font-medium text-gray-900">Viber</h3>
