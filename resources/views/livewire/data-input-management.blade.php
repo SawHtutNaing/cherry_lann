@@ -73,7 +73,7 @@
                                 Export
                             </button>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 flex flex-col gap-y-4">
                             <a href="{{ route('data-inputs.edit', $dataInput->id) }}"
                                 class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400">Edit</a>
                             <button wire:confirm='Are You Sure Want To Delete ?'
