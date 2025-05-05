@@ -30,7 +30,7 @@
                         </x-nav-link>
 
                         <x-nav-link :href="route('boost_types')" :active="request()->routeIs('boost_types')">
-                            {{ __('Boost Type Management') }}
+                            {{ __('Service Type Management') }}
                         </x-nav-link>
 
 

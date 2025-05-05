@@ -27,7 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('data-inputs/create', DataInputForm::class)->name('data-inputs.create');
     Route::get('data-inputs/{dataInputId}/edit', DataInputForm::class)->name('data-inputs.edit');
     Route::get('/report', Report::class)->name('report');
-    Route::get('/boost-types' , BoostTypeManagement::class)->name('boost_types');
+    Route::get('/services-types' , BoostTypeManagement::class)->name('boost_types');
 
 });
 Route::get('users', UserManagement::class)->name('users.index');

@@ -1,7 +1,7 @@
 
 <div>
     <div class="container mx-auto mt-8">
-        <h1 class="mb-6 text-2xl font-semibold">Boost Types</h1>
+        <h1 class="mb-6 text-2xl font-semibold">Service Types</h1>
 
         <!-- Success Message -->
         @if (session('success'))
