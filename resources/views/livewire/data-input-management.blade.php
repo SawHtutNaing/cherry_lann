@@ -34,8 +34,8 @@
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Phone</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Boost Type</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Start Date</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Quantity</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Amount</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">MM Kyat</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total Amount</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Status</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Created At</th>

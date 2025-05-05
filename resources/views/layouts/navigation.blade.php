@@ -70,6 +70,11 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
+                        <x-dropdown-link  :href="route('boost_types')" :active="request()->routeIs('boost_types')">
+                            {{ __('Service Type Management') }}
+                        </x-dropdown-link >
+
+
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -120,6 +125,10 @@
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
 
+                <x-responsive-nav-link  :href="route('boost_types')" :active="request()->routeIs('boost_types')">
+                    {{ __('Service Type Management') }}
+                </x-responsive-nav-link >
+
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -129,6 +138,9 @@
                                         this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
+
+
+
                 </form>
             </div>
         </div>

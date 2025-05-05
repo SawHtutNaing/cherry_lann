@@ -38,7 +38,7 @@
                         <p style="font-size: 18px; color: #333; font-weight: 500; margin: 0; padding: 10px; background-color: rgba(230, 240, 255, 0.5); border-radius: 8px;">{{ $phone }}</p>
                     </div>
                     <div style="margin-bottom: 20px;">
-                        <p style="font-size: 14px; color: #666; margin: 0 0 5px;">Boost Type</p>
+                        <p style="font-size: 14px; color: #666; margin: 0 0 5px;">Service Type</p>
                         <p style="font-size: 18px; color: #333; font-weight: 500; margin: 0; padding: 10px; background-color: rgba(230, 240, 255, 0.5); border-radius: 8px;">{{ $boost_type_id }}</p>
                     </div>
                 </div>
@@ -71,13 +71,13 @@
 
             <div style="margin-top: 20px; text-align: center;">
                 <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 7px 7px; border-radius: 50px; box-shadow: 0 5px 10px rgba(0, 70, 173, 0.3);">
-                    <p style="font-size: 10px; color: white; margin: 0 0 5px; font-weight: 300;">Amount</p>
+                    <p style="font-size: 10px; color: white; margin: 0 0 5px; font-weight: 300;">Quantity</p>
                     <p style="font-size: 20px; color: white; margin: 0; font-weight: 700;">${{ number_format($amount, 2) }}</p>
                 </div>
             </div>
             <div style="margin-top: 20px; text-align: center;">
                 <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 7px 7px; border-radius: 50px; box-shadow: 0 5px 10px rgba(0, 70, 173, 0.3);">
-                    <p style="font-size: 10px; color: white; margin: 0 0 5px; font-weight: 300;">MM Kyat</p>
+                    <p style="font-size: 10px; color: white; margin: 0 0 5px; font-weight: 300;">Amount</p>
                     <p style="font-size: 20px; color: white; margin: 0; font-weight: 700;">{{ number_format($mm_kyat, 2) }}</p>
                 </div>
             </div>

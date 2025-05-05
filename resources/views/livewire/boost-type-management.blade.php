@@ -21,7 +21,7 @@
         <div class="mb-6">
             <button wire:click="openModal"
                 class="px-4 py-2 text-white bg-blue-500 rounded shadow hover:bg-blue-400">
-                Create New Boost Type
+                Create New Service Type
             </button>
         </div>
 

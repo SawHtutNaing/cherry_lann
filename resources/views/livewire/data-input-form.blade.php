@@ -33,7 +33,7 @@
 
         <!-- Boost Type -->
         <div class="mb-4">
-            <label class="block text-gray-700">Boost Type:</label>
+            <label class="block text-gray-700">Service Type:</label>
             <select wire:model="boost_type_id" name="boost_type_id"
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Select</option>
@@ -58,7 +58,7 @@
 
         <!-- Amount -->
         <div class="mb-4">
-            <label class="block text-gray-700">$ Amount:</label>
+            <label class="block text-gray-700">Quantity</label>
             <input type="number" step="0.01" wire:model.live="amount"
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             @error('amount')
@@ -68,7 +68,7 @@
 
         <!-- MM Kyat -->
         <div class="mb-4">
-            <label class="block text-gray-700">MM Kyat:</label>
+            <label class="block text-gray-700">Amount</label>
             <input type="number" step="0.01" wire:model.live="mm_kyat"
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             @error('mm_kyat')

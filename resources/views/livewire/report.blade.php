@@ -119,7 +119,7 @@
                 </div>
 
                 <div class="w-full md:w-1/4">
-                    <label for="boosttype" class="block text-sm font-medium text-gray-700">Boost Type</label>
+                    <label for="boosttype" class="block text-sm font-medium text-gray-700">Service Type</label>
                     <select wire:model="boosttype"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">All</option>
@@ -161,11 +161,11 @@
                 <tr class="w-full bg-gray-100 border-b">
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">No</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Page Name</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Boost By</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Boost Type</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Serviced By</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Service Type</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Start Date</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Quantity</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Amount</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">MM Kyat </th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total Amount</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Status</th>
                     {{-- @if (!$isExport)
