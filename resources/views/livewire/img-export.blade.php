@@ -47,7 +47,7 @@
                         <p style="font-size: 14px; color: #666; margin: 0 0 5px;">Start Date</p>
                         <p style="font-size: 18px; color: #333; font-weight: 500; margin: 0; padding: 10px; background-color: rgba(230, 240, 255, 0.5); border-radius: 8px;">{{ $start_date }}</p>
                     </div>
-                    <div style="margin-bottom: 20px;">
+                    {{-- <div style="margin-bottom: 20px;">
                         <p style="font-size: 14px; color: #666; margin: 0 0 5px;">Status</p>
                         @php
                             $statusColor = $status->name === 'Charge' ? '#00a846' : '#ff4c4c';
@@ -57,15 +57,15 @@
                         <p style="font-size: 18px; color: {{ $statusColor }}; font-weight: 500; margin: 0; padding: 10px; background-color: {{ $statusBg }}; border-radius: 8px;">
                             {{ $statusText }}
                         </p>
-                    </div>
-                    <div style="margin-bottom: 20px;">
+                    </div> --}}
+                    {{-- <div style="margin-bottom: 20px;">
                         <p style="font-size: 14px; color: #666; margin: 0 0 5px;">Created At</p>
                         <p style="font-size: 18px; color: #333; font-weight: 500; margin: 0; padding: 10px; background-color: rgba(230, 240, 255, 0.5); border-radius: 8px;">{{ $created_at }}</p>
-                    </div>
-                    <div style="margin-bottom: 20px;">
+                    </div> --}}
+                    {{-- <div style="margin-bottom: 20px;">
                         <p style="font-size: 14px; color: #666; margin: 0 0 5px;">Updated At</p>
                         <p style="font-size: 18px; color: #333; font-weight: 500; margin: 0; padding: 10px; background-color: rgba(230, 240, 255, 0.5); border-radius: 8px;">{{ $updated_at }}</p>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
 

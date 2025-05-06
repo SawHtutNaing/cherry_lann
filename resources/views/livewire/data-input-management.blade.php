@@ -32,7 +32,7 @@
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Customer Name</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Page Name</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Phone</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Boost Type</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Service Type</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Start Date</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Quantity</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Amount</th>
