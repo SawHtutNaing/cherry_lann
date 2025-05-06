@@ -66,13 +66,32 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
+
+                        <x-dropdown-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Add Boost') }}
                         </x-dropdown-link>
+
+
+                        {{-- @if (auth()->user()->role == 'admin') --}}
+                            <x-dropdown-link :href="route('report')" :active="request()->routeIs('report')">
+                                {{ __('Report') }}
+                            </x-dropdown-link>
+                            <x-dropdown-link :href="route('users.index')" :active="request()->routeIs('users.index')">
+                                {{ __('Users Management') }}
+                            </x-dropdown-link>
+
+
+
+
+
 
                         <x-dropdown-link  :href="route('boost_types')" :active="request()->routeIs('boost_types')">
                             {{ __('Service Type Management') }}
                         </x-dropdown-link >
+                        <x-dropdown-link :href="route('profile.edit')">
+                            {{ __('Profile') }}
+                        </x-dropdown-link>
+
 
 
                         <!-- Authentication -->
@@ -120,14 +139,32 @@
                 <div class="text-sm font-medium text-gray-500">{{ Auth::user()->email }}</div>
             </div>
 
+
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
+
+                {{-- <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    {{ __('Add Boost') }}
+                </x-responsive-nav-link> --}}
+
+
+                {{-- @if (auth()->user()->role == 'admin') --}}
+                    <x-responsive-nav-link :href="route('report')" :active="request()->routeIs('report')">
+                        {{ __('Report') }}
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')">
+                        {{ __('Users Management') }}
+                    </x-responsive-nav-link>
+
+
 
                 <x-responsive-nav-link  :href="route('boost_types')" :active="request()->routeIs('boost_types')">
                     {{ __('Service Type Management') }}
                 </x-responsive-nav-link >
+
+                <x-responsive-nav-link :href="route('profile.edit')">
+                    {{ __('Profile') }}
+                </x-responsive-nav-link>
+
 
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
