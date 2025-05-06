@@ -99,7 +99,6 @@ class DataInputForm extends Component
     private function calculateTotalAmount()
     {
         $this->total_amount = ((float) $this->mm_kyat) * ((float) $this->amount);
-        $this->dispatch('refresh-total-amount');
     }
 
     public function render()
