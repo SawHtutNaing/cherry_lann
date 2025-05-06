@@ -69,12 +69,14 @@
                 </div>
             </div>
 
+            @if($boost_type_iddd )
             <div style="margin-top: 20px; text-align: center;">
                 <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 7px 7px; border-radius: 50px; box-shadow: 0 5px 10px rgba(0, 70, 173, 0.3);">
                     <p style="font-size: 10px; color: white; margin: 0 0 5px; font-weight: 300;">Quantity</p>
                     <p style="font-size: 20px; color: white; margin: 0; font-weight: 700;">${{ number_format($amount, 2) }}</p>
                 </div>
             </div>
+@endif
             <div style="margin-top: 20px; text-align: center;">
                 <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 7px 7px; border-radius: 50px; box-shadow: 0 5px 10px rgba(0, 70, 173, 0.3);">
                     <p style="font-size: 10px; color: white; margin: 0 0 5px; font-weight: 300;">Amount</p>
