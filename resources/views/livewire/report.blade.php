@@ -136,6 +136,7 @@
                         <option value="">All</option>
                         <option value="1">Charge</option>
                         <option value="2">Refund</option>
+                        <option value="3">Pending</option>
                     </select>
                 </div>
 
