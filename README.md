@@ -26,3 +26,10 @@ pdf => မှာ refund ပဲဖြစ်နေတယ်
 
 
 edit / delete button -> responsive
+
+
+
+created time , updated time 
+total amount -> udpate ဖြစ်ဖို့လို 
+
+
