@@ -33,7 +33,7 @@ class DataInputForm extends Component
             'amount' => 'required|numeric|min:0',
             'mm_kyat' => 'required|numeric|min:0',
             'total_amount' => 'required|numeric|min:0',
-            'status' => 'required|in:1,2,3', // Updated to include Pending (3)
+            'status' => 'required|in:1,2,3',
         ];
     }
 
@@ -54,6 +54,9 @@ class DataInputForm extends Component
             $this->status = $dataInput->status->value;
         } else {
             $this->status = BoostStatus::Charge->value;
+            $this->amount = 0;
+            $this->mm_kyat = 0;
+            $this->total_amount = 0;
         }
     }
 
@@ -81,20 +84,22 @@ class DataInputForm extends Component
         return redirect()->route('dashboard')->with('success', 'Data input saved successfully!');
     }
 
-    public function updatedMmKyat()
+    public function updatedMmKyat($value)
     {
+        $this->mm_kyat = (float) $value;
         $this->calculateTotalAmount();
     }
 
-    public function updatedAmount()
+    public function updatedAmount($value)
     {
+        $this->amount = (float) $value;
         $this->calculateTotalAmount();
     }
 
     private function calculateTotalAmount()
     {
-
-        $this->total_amount = ((float)$this->mm_kyat) * ((float)$this->amount);
+        $this->total_amount = ((float) $this->mm_kyat) * ((float) $this->amount);
+        $this->dispatch('refresh-total-amount');
     }
 
     public function render()

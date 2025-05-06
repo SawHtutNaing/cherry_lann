@@ -79,7 +79,7 @@
         <!-- Total Amount -->
         <div class="mb-4">
             <label class="block text-gray-700">Total Amount:</label>
-            <input type="number" step="0.01" wire:model="total_amount" readonly
+            <input type="text" value="{{ number_format($total_amount, 2) }}" readonly
                 class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 focus:outline-none">
             @error('total_amount')
                 <span class="text-red-500">{{ $message }}</span>
