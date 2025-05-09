@@ -156,6 +156,56 @@
 
         </div>
     @endif
+    <table class="min-w-full bg-white border border-gray-200">
+
+        <thead>
+            <tr class="w-full bg-gray-100 border-b">
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Campaing</th>
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Charge</th>
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Refund</th>
+
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total</th>
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Pending</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="border-b">
+                <td class="px-6 py-4 text-sm text-gray-800">
+                    {{ $dataInputs->count() }}
+
+                </td>
+
+                <td class="px-6 py-4 text-sm text-gray-800">
+                    {{ $charges }}
+
+                </td>
+
+                <td class="px-6 py-4 text-sm text-gray-800">
+                    {{ $refund }}
+
+                </td>
+
+
+                <td class="px-6 py-4 text-sm text-gray-800">
+                    {{ $charges - $refund }}
+
+                </td>
+
+
+                <td class="px-6 py-4 text-sm text-gray-800">
+                    {{  $pending_total }}
+
+                </td>
+
+
+
+
+
+            </tr>
+        </tbody>
+    </table>
+
     <div class="mt-6 overflow-x-auto">
         <table class="min-w-full bg-white border border-gray-200">
             <thead>
@@ -209,46 +259,6 @@
 
 
 
-        <table class="min-w-full bg-white border border-gray-200">
 
-            <thead>
-                <tr class="w-full bg-gray-100 border-b">
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Campaing</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Charge</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Refund</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total</th>
-
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="border-b">
-                    <td class="px-6 py-4 text-sm text-gray-800">
-                        {{ $dataInputs->count() }}
-
-                    </td>
-
-                    <td class="px-6 py-4 text-sm text-gray-800">
-                        {{ $charges }}
-
-                    </td>
-
-                    <td class="px-6 py-4 text-sm text-gray-800">
-                        {{ $refund }}
-
-                    </td>
-
-
-                    <td class="px-6 py-4 text-sm text-gray-800">
-                        {{ $charges - $refund }}
-
-                    </td>
-
-
-
-
-
-                </tr>
-            </tbody>
-        </table>
     </div>
 </div>

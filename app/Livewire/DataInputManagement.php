@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\View;
 // use Intervention\Image\Facades\Image MissinGrok\Image;
 use Illuminate\Support\Facades\Storage;
 use App\BoostStatus;
+use App\Models\BoostType;
 use Mpdf\Mpdf;
 use Illuminate\Support\Facades\Response;
 
@@ -16,6 +17,7 @@ class DataInputManagement extends Component
 {
     public $dataInputs;
     public $startDate, $endDate;
+    public $boostTypes;
 
     protected $listeners = [
         'dataInputUpdated' => '$refresh',
@@ -62,6 +64,7 @@ class DataInputManagement extends Component
 
     public function mount()
     {
+        $this->boostTypes = BoostType::all();
         $this->startDate = now()->subDays(30)->format('Y-m-d');
         $this->endDate = now()->format('Y-m-d');
         $this->filterData();
@@ -74,17 +77,34 @@ class DataInputManagement extends Component
         session()->flash('success', 'Data Input deleted successfully!');
     }
 
+    public $status_at;
+    public $boosttype;
+
+
     public function filterData()
     {
         $query = DataInput::query()
-            ->where('user_id', auth()->id())
-            ->with('boostType');
+    ->where('user_id', auth()->id())
+    ->with('boostType')
+    ->orderBy('created_at', 'desc');
+
 
         if ($this->startDate && $this->endDate) {
             $query->whereBetween('start_date', [$this->startDate, $this->endDate]);
         }
+        if($this->boosttype){
+            $query->where('boost_type_id', $this->boosttype);
+
+        }
+
+        if($this->status_at){
+            $query->where('status', $this->status_at);
+
+        }
+
 
         $this->dataInputs = $query->get();
+        
     }
 
     public function render()

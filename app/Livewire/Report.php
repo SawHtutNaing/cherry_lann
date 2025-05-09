@@ -23,6 +23,7 @@ class Report extends Component
     public $users;
     public $status_at;
     public $service_by;
+    public $pending_total;
 
 
     public function mount()
@@ -32,20 +33,18 @@ class Report extends Component
         $this->servicesBys = User::all();
         $this->service_by = auth()->id();
         $this->boostTypes = BoostType::all();
-
-
-
         $query = DataInput::query();
         $query->whereBetween('start_date', [$this->startDate, $this->endDate]);
-
         $query->when($this->service_by , fn($q)=> $q->where('user_id' , $this->service_by) );
         $this->dataInputs = $query->get();
+
     }
 
     public function upddateBudget()
     {
         $this->charges = $this->dataInputs->where('status', 1)->sum('amount');
         $this->refund = $this->dataInputs->where('status', 2)->sum('amount');
+        $this->pending_total = $this->dataInputs->where('status', 3)->sum('amount');
     }
 
     public function filterData()

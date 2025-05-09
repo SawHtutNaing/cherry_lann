@@ -1,23 +1,48 @@
-<div class="container mx-auto mt-8">
+<div class="container mx-auto mt-8 px-4">
     <h1 class="mb-6 text-2xl font-semibold">Data Inputs</h1>
 
-    <div class="p-6 mx-auto bg-white rounded-lg shadow-lg">
+    <div class="p-6 bg-white rounded-lg shadow-lg">
         <a href="{{ route('data-inputs.create') }}"
-            class="px-4 py-2 text-white bg-blue-500 rounded shadow hover:bg-blue-400">Create New Data Input</a>
-        <div class="flex flex-col justify-end mt-3 space-y-4 md:flex-row md:space-y-0 md:space-x-4">
-            <div class="w-full">
+            class="inline-block mb-4 px-4 py-2 text-white bg-blue-500 rounded shadow hover:bg-blue-400">Create New Data Input</a>
+
+        <div class="flex flex-col gap-4 md:flex-row md:flex-wrap">
+            <div class="w-full md:w-1/4">
+                <label for="boosttype" class="block text-sm font-medium text-gray-700">Service Type</label>
+                <select wire:model="boosttype"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All</option>
+                    @foreach ($boostTypes as $boostType)
+                        <option value="{{ $boostType->id }}">{{ $boostType->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="w-full md:w-1/4">
+                <label for="status_at" class="block text-sm font-medium text-gray-700">Status</label>
+                <select wire:model="status_at"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All</option>
+                    <option value="1">Charge</option>
+                    <option value="2">Refund</option>
+                    <option value="3">Pending</option>
+                </select>
+            </div>
+
+            <div class="w-full md:w-1/4">
                 <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
                 <input type="date" id="start_date" wire:model='startDate'
-                    class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
             </div>
-            <div class="w-full">
+
+            <div class="w-full md:w-1/4">
                 <label for="end_date" class="block text-sm font-medium text-gray-700">End Date</label>
                 <input type="date" id="end_date" wire:model='endDate'
-                    class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
             </div>
-            <div class="flex items-end mt-4">
+
+            <div class="w-full md:w-auto flex items-end">
                 <button id="filterBtn" wire:click='filterData()'
-                    class="w-full px-4 py-2 font-semibold text-white transition duration-200 bg-blue-600 rounded-md shadow hover:bg-blue-700">
+                    class="w-full md:w-auto px-4 py-2 font-semibold text-white bg-blue-600 rounded-md shadow hover:bg-blue-700">
                     Filter
                 </button>
             </div>
@@ -25,9 +50,9 @@
     </div>
 
     <div class="mt-6 overflow-x-auto">
-        <table class="min-w-full bg-white border border-gray-200">
+        <table class="min-w-max w-full bg-white border border-gray-200">
             <thead>
-                <tr class="w-full bg-gray-100 border-b">
+                <tr class="bg-gray-100 border-b">
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">No</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Customer Name</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Page Name</th>
@@ -73,7 +98,7 @@
                                 Export
                             </button>
                         </td>
-                        <td class="px-6 py-4 flex flex-col gap-y-4">
+                        <td class="px-6 py-4 flex flex-col gap-y-2">
                             <a href="{{ route('data-inputs.edit', $dataInput->id) }}"
                                 class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400">Edit</a>
                             <button wire:confirm='Are You Sure Want To Delete ?'
