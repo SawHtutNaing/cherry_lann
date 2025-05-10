@@ -29,9 +29,12 @@
         <!-- Voucher Content -->
         <div style="padding: 30px 40px; position: relative;">
             <h2 style="color: #0046ad; font-size: 22px; margin-bottom: 25px; border-bottom: 2px solid #e6f0ff; padding-bottom: 10px;">
-                Thank you for choosing Cherry Lann Digital Marketing
-                <img src="{{ $logo_base64 }}" alt="Cherry Lann Logo" class="logo">
+                Thank you for choosing CHERRY LANN-DIGITAL MARKETING
+
             </h2>
+            <div style="display: flex;  justify-content: center; width:100%">
+                <img src="{{ $logo_base64 }}" alt="Cherry Lann Logo" class="logo" style="">
+            </div>
 
             <div style="display: flex; flex-wrap: wrap; gap: 20px;">
                 <div style="flex: 1; min-width: 250px;">

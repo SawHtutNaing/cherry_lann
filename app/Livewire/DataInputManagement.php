@@ -29,10 +29,11 @@ public function export($id)
     $boost = DataInput::with('boostType')->findOrFail($id);
 
     // Load and convert the logo to base64
-    $logoPath = public_path('images/logo.jpg');
+    $logoPath = public_path('images/logo.jpeg');
     $logoBase64 = '';
     if (file_exists($logoPath)) {
         $logoData = file_get_contents($logoPath);
+
         $logoBase64 = 'data:image/jpeg;base64,' . base64_encode($logoData);
     }
 
