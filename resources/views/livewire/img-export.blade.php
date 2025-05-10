@@ -15,26 +15,30 @@
             align-items: center;
             min-height: 100vh;
         }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
         .logo {
-            max-width: 100px;
+            max-width: 5rem;
             height: auto;
-            position: absolute;
-            top: 30px;
-            right: 40px;
+            margin:auto;
         }
     </style>
 </head>
 <body>
-    <div style="width: 100%; max-width: 800px; margin: 20px; background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 102, 0.1); overflow: hidden;">
+    <div style="width: 100%; max-width: 800px; background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 102, 0.1); overflow: hidden;">
         <!-- Voucher Content -->
         <div style="padding: 30px 40px; position: relative;">
-            <h2 style="color: #0046ad; font-size: 22px; margin-bottom: 25px; border-bottom: 2px solid #e6f0ff; padding-bottom: 10px;">
-                Thank you for choosing CHERRY LANN-DIGITAL MARKETING
-
-            </h2>
-            <div style="display: flex;  justify-content: center; width:100%">
-                <img src="{{ $logo_base64 }}" alt="Cherry Lann Logo" class="logo" style="">
+            <div class="logo-container">
+                <img src="{{ $logo_base64 }}" alt="Cherry Lann Logo" class="logo">
             </div>
+            <h2 style="color: #0046ad; font-size: 22px; margin-bottom: 25px; border-bottom: 2px solid #e6f0ff; padding-bottom: 10px;">
+                Thank you for choosing Us !
+            </h2>
+
 
             <div style="display: flex; flex-wrap: wrap; gap: 20px;">
                 <div style="flex: 1; min-width: 250px;">
@@ -63,7 +67,7 @@
                 </div>
             </div>
 
-            @if($boost_type_id == 'Boosting')
+            @if(Str::contains($boost_type_id, 'Boosting'))
             <div style="margin-top: 20px; text-align: center;">
                 <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 7px 7px; border-radius: 50px; box-shadow: 0 5px 10px rgba(0, 70, 173, 0.3);">
                     <p style="font-size: 20px; color: white; margin: 0 0 5px; font-weight: 300;">Quantity</p>
