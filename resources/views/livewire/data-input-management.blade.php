@@ -54,6 +54,7 @@
             <thead>
                 <tr class="bg-gray-100 border-b">
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">No</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Action</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Customer Name</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Page Name</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Phone</th>
@@ -73,6 +74,13 @@
                 @foreach ($dataInputs as $dataInput)
                     <tr class="border-b" wire:key='{{ $dataInput->id }}'>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $loop->iteration }}</td>
+                        <td class="px-6 py-4 flex flex-col gap-y-2">
+                            <a href="{{ route('data-inputs.edit', $dataInput->id) }}"
+                                class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400">Edit</a>
+                            <button wire:confirm='Are You Sure Want To Delete ?'
+                                wire:click="delete({{ $dataInput->id }})"
+                                class="px-4 py-2 text-white bg-red-500 rounded shadow hover:bg-red-400">Delete</button>
+                        </td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->customer_name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->page_name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->phone ?? 'N/A' }}</td>
@@ -98,13 +106,7 @@
                                 Export
                             </button>
                         </td>
-                        <td class="px-6 py-4 flex flex-col gap-y-2">
-                            <a href="{{ route('data-inputs.edit', $dataInput->id) }}"
-                                class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400">Edit</a>
-                            <button wire:confirm='Are You Sure Want To Delete ?'
-                                wire:click="delete({{ $dataInput->id }})"
-                                class="px-4 py-2 text-white bg-red-500 rounded shadow hover:bg-red-400">Delete</button>
-                        </td>
+
                     </tr>
                 @endforeach
             </tbody>
