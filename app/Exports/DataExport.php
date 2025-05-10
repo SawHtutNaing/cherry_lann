@@ -15,13 +15,14 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 class DataExport implements FromView, WithStyles, WithColumnFormatting
 {
     public $dataInputs;
-    public $charges, $refund;
+    public $charges, $refund , $pending_total;
 
-    public function __construct($dataInputs, $charges, $refund)
+    public function __construct($dataInputs, $charges, $refund , $pending_total)
     {
         $this->dataInputs = $dataInputs;
         $this->charges = $charges;
         $this->refund = $refund;
+        $this->pending_total = $pending_total;
     }
 
     public function styles(Worksheet $sheet)
@@ -84,6 +85,7 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
             'isExport' => true,
             'charges' => $this->charges,
             'refund' => $this->refund,
+            'pending_total' => $this->pending_total
         ]);
     }
 }

@@ -23,44 +23,54 @@ class DataInputManagement extends Component
         'dataInputUpdated' => '$refresh',
     ];
 
-    public function export($id)
-    {
-        $boost = DataInput::with('boostType')->findOrFail($id);
-        // Render the HTML using Blade
-        $html = View::make('livewire.img-export', [
-            'customer_name' => $boost->customer_name ?? 'N/A',
-            'page_name' => $boost->page_name ?? 'Sample Page',
-            'phone' => $boost->phone ?? 'N/A',
-            'boost_type_id' => $boost->boostType->name ?? 'N/A',
-            // 'boost_type_iddd' => $boost->boost_type_id,
-            'start_date' => $boost->start_date ? Carbon::parse($boost->start_date)->format('Y-m-d') : now()->format('Y-m-d'),
-            'status' => $boost->status, // Pass the raw enum value
-            'amount' => $boost->amount ?? 0,
-            'mm_kyat' => $boost->mm_kyat ?? 0,
-            'total_amount' => $boost->total_amount ?? 0,
-            'created_at' => Carbon::parse($boost->created_at)->format('d/m/y H:i'),
-            'updated_at' => Carbon::parse($boost->updated_at)->format('d/m/y H:i'),
-            'generated_date' => now()->format('d-m-Y'),
-        ])->render();
 
-        $mpdf = new Mpdf([
-            'fontDir' => [storage_path('fonts')],
-            'fontdata' => [
-                'myanmar' => [
-                    'R' => 'padauk.ttf',
-                    'B' => 'padauk.ttf',
-                ],
-            ],
-            'format' => 'A4',
-            'mode' => 'utf-8',
-            'default_font' => 'myanmar',
-        ]);
+public function export($id)
+{
+    $boost = DataInput::with('boostType')->findOrFail($id);
 
-        $mpdf->WriteHTML($html);
-        return response()->streamDownload(function () use ($mpdf) {
-            $mpdf->Output('voucher.pdf', 'D');
-        }, 'export_voucher.pdf');
+    // Load and convert the logo to base64
+    $logoPath = public_path('images/logo.jpg');
+    $logoBase64 = '';
+    if (file_exists($logoPath)) {
+        $logoData = file_get_contents($logoPath);
+        $logoBase64 = 'data:image/jpeg;base64,' . base64_encode($logoData);
     }
+
+    // Render the HTML using Blade
+    $html = View::make('livewire.img-export', [
+        'customer_name' => $boost->customer_name ?? 'N/A',
+        'page_name' => $boost->page_name ?? 'Sample Page',
+        'phone' => $boost->phone ?? 'N/A',
+        'boost_type_id' => $boost->boostType->name ?? 'N/A',
+        'start_date' => $boost->start_date ? Carbon::parse($boost->start_date)->format('Y-m-d') : now()->format('Y-m-d'),
+        'status' => $boost->status,
+        'amount' => $boost->amount ?? 0,
+        'mm_kyat' => $boost->mm_kyat ?? 0,
+        'total_amount' => $boost->total_amount ?? 0,
+        'created_at' => Carbon::parse($boost->created_at)->format('d/m/y H:i'),
+        'updated_at' => Carbon::parse($boost->updated_at)->format('d/m/y H:i'),
+        'generated_date' => now()->format('d-m-Y'),
+        'logo_base64' => $logoBase64, // Pass the base64-encoded logo
+    ])->render();
+
+    $mpdf = new Mpdf([
+        'fontDir' => [storage_path('fonts')],
+        'fontdata' => [
+            'myanmar' => [
+                'R' => 'padauk.ttf',
+                'B' => 'padauk.ttf',
+            ],
+        ],
+        'format' => 'A4',
+        'mode' => 'utf-8',
+        'default_font' => 'myanmar',
+    ]);
+
+    $mpdf->WriteHTML($html);
+    return response()->streamDownload(function () use ($mpdf) {
+        $mpdf->Output('voucher.pdf', 'D');
+    }, 'export_voucher.pdf');
+}
 
     public function mount()
     {

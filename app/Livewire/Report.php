@@ -72,7 +72,7 @@ class Report extends Component
     public function reprotExcel()
     {
 
-        return Excel::download(new DataExport($this->dataInputs, $this->charges, $this->refund), 'cherry_lann.xlsx');
+        return Excel::download(new DataExport($this->dataInputs, $this->charges, $this->refund , $this->pending_total), 'cherry_lann.xlsx');
     }
     public function render()
     {

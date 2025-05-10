@@ -212,6 +212,7 @@
                 <tr class="w-full bg-gray-100 border-b">
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">No</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Page Name</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Cus Name</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Serviced By</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Service Type</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Start Date</th>
@@ -230,6 +231,7 @@
 
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->page_name }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->customer_name }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->user->name }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->boostType->name }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">
