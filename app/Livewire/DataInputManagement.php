@@ -32,7 +32,7 @@ class DataInputManagement extends Component
             'page_name' => $boost->page_name ?? 'Sample Page',
             'phone' => $boost->phone ?? 'N/A',
             'boost_type_id' => $boost->boostType->name ?? 'N/A',
-            'boost_type_iddd' => $boost->boost_type_id,
+            // 'boost_type_iddd' => $boost->boost_type_id,
             'start_date' => $boost->start_date ? Carbon::parse($boost->start_date)->format('Y-m-d') : now()->format('Y-m-d'),
             'status' => $boost->status, // Pass the raw enum value
             'amount' => $boost->amount ?? 0,
@@ -104,7 +104,7 @@ class DataInputManagement extends Component
 
 
         $this->dataInputs = $query->get();
-        
+
     }
 
     public function render()
