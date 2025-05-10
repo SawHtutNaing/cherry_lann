@@ -67,7 +67,7 @@
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Created At</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Updated At</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Export</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Actions</th>
+
                 </tr>
             </thead>
             <tbody>
