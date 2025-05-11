@@ -16,35 +16,57 @@
             min-height: 100vh;
         }
         .logo-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        .logo {
-            max-width: 5rem;
-            height: auto;
-        }
-        .thank-you-text {
-            color: #0046ad;
-            font-size: 22px;
-            margin: 0 15px;
-            border-bottom: 2px solid #e6f0ff;
-            padding-bottom: 10px;
-            text-align: center;
-        }
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+    gap: 1rem;
+}
+
+.logo {
+    max-width: 5rem;
+    height: auto;
+}
+
+.thank-you-text {
+    color: #0046ad;
+    font-size: 22px;
+    border-bottom: 2px solid #e6f0ff;
+    padding-bottom: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
     </style>
 </head>
 <body>
     <div style="width: 100%; max-width: 800px; background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 102, 0.1); overflow: hidden;">
         <!-- Voucher Content -->
         <div style="padding: 30px 40px; position: relative;">
-            <div class="logo-container">
-                <img src="{{ $logo_base64 }}" alt="Cherry Lann Logo" class="logo">
-                <span class="thank-you-text">Thank you for choosing Us!</span>
-                <img src="{{ $logo_base64 }}" alt="Cherry Lann Logo" class="logo">
-            </div>
+            <table style="width: 100%; text-align: center; margin-bottom: 20px;">
+                <tr>
+                    <td style="width: 25%;">
+                        <img src="{{ $logo_base64 }}" alt="Logo" style="max-width: 80px;">
+                    </td>
+                    <td style="width: 50%;">
+                        <span style="
+                            color: #0046ad;
+                            font-size: 22px;
+                            font-weight: 600;
+                            border-bottom: 2px solid #e6f0ff;
+                            padding-bottom: 10px;
+                            display: inline-block;
+                            white-space: nowrap;
+                        ">Thank you for choosing Us!</span>
+                    </td>
+                    <td style="width: 25%;">
+                        <img src="{{ $logo_base64 }}" alt="Logo" style="max-width: 80px;">
+                    </td>
+                </tr>
+            </table>
+
+
             <h2></h2>
             <div style="display: flex; flex-wrap: wrap; gap: 20px;">
                 <div style="flex: 1; min-width: 250px;">
