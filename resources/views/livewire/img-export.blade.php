@@ -18,13 +18,21 @@
         .logo-container {
             display: flex;
             justify-content: center;
+            align-items: center;
             width: 100%;
             margin-bottom: 20px;
         }
         .logo {
             max-width: 5rem;
             height: auto;
-            margin:auto;
+        }
+        .thank-you-text {
+            color: #0046ad;
+            font-size: 22px;
+            margin: 0 15px;
+            border-bottom: 2px solid #e6f0ff;
+            padding-bottom: 10px;
+            text-align: center;
         }
     </style>
 </head>
@@ -34,12 +42,10 @@
         <div style="padding: 30px 40px; position: relative;">
             <div class="logo-container">
                 <img src="{{ $logo_base64 }}" alt="Cherry Lann Logo" class="logo">
+                <span class="thank-you-text">Thank you for choosing Us!</span>
+                <img src="{{ $logo_base64 }}" alt="Cherry Lann Logo" class="logo">
             </div>
-            <h2 style="color: #0046ad; font-size: 22px; margin-bottom: 25px; border-bottom: 2px solid #e6f0ff; padding-bottom: 10px;">
-                Thank you for choosing Us !
-            </h2>
-
-
+            <h2></h2>
             <div style="display: flex; flex-wrap: wrap; gap: 20px;">
                 <div style="flex: 1; min-width: 250px;">
                     <div style="margin-bottom: 20px;">
@@ -66,25 +72,24 @@
                     </div>
                 </div>
             </div>
-
             @if(Str::contains($boost_type_id, 'Boosting'))
             <div style="margin-top: 20px; text-align: center;">
-                <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 7px 7px; border-radius: 50px; box-shadow: 0 5px 10px rgba(0, 70, 173, 0.3);">
-                    <p style="font-size: 20px; color: white; margin: 0 0 5px; font-weight: 300;">Quantity</p>
-                    <p style="font-size: 30px; color: white; margin: 0; font-weight: 900;">${{ number_format($amount, 2) }}</p>
+                <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 3px 5px; border-radius: 40px; box-shadow: 0 3px 8px rgba(0, 70, 173, 0.3);">
+                    <p style="font-size: 13px; color: white; margin: 0 0 3px; font-weight: 300;">Quantity</p>
+                    <p style="font-size: 18px; color: white; margin: 0; font-weight: 900;">${{ number_format($amount, 2) }}</p>
                 </div>
             </div>
             @endif
             <div style="margin-top: 20px; text-align: center;">
-                <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 7px 7px; border-radius: 50px; box-shadow: 0 5px 10px rgba(0, 70, 173, 0.3);">
-                    <p style="font-size: 20px; color: white; margin: 0 0 5px; font-weight: 300;">Amount</p>
-                    <p style="font-size: 30px; color: white; margin: 0; font-weight: 900;">{{ number_format($mm_kyat, 2) }}</p>
+                <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 3px 5px; border-radius: 40px; box-shadow: 0 3px 8px rgba(0, 70, 173, 0.3);">
+                    <p style="font-size: 13px; color: white; margin: 0 0 3px; font-weight: 300;">Amount</p>
+                    <p style="font-size: 18px; color: white; margin: 0; font-weight: 900;">{{ number_format($mm_kyat, 2) }}</p>
                 </div>
             </div>
             <div style="margin-top: 20px; text-align: center;">
-                <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 7px 7px; border-radius: 50px; box-shadow: 0 5px 10px rgba(0, 70, 173, 0.3);">
-                    <p style="font-size: 20px; color: white; margin: 0 0 5px; font-weight: 300;">Total Amount</p>
-                    <p style="font-size: 30px; color: white; margin: 0; font-weight: 900;">{{ number_format($total_amount, 2) }}</p>
+                <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 3px 5px; border-radius: 40px; box-shadow: 0 3px 8px rgba(0, 70, 173, 0.3);">
+                    <p style="font-size: 13px; color: white; margin: 0 0 3px; font-weight: 300;">Total Amount</p>
+                    <p style="font-size: 18px; color: white; margin: 0; font-weight: 900;">{{ number_format($total_amount, 2) }}</p>
                 </div>
             </div>
         </div>
