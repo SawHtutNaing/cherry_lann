@@ -7,7 +7,9 @@ use App\BoostStatus;
 
 class DataInput extends Model
 {
-    protected $fillable = ['page_name', 'customer_name' , 'phone',  'boost_type_id', 'start_date', 'amount', 'status', 'user_id' ,'mm_kyat' , 'total_amount'];
+    protected $fillable = ['page_name', 'customer_name' , 'phone',  'boost_type_id', 'start_date', 'amount', 'status', 'user_id' ,'mm_kyat' , 'total_amount'
+,'discount'
+];
     protected $casts = [
         'status' => BoostStatus::class, // Automatically cast status as an enum
         'start_date' => 'date', // Casts to Carbon instance

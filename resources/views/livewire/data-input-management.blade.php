@@ -62,6 +62,7 @@
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Start Date</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Quantity</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Amount</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Discount</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total Amount</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Status</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Created At</th>
@@ -90,6 +91,7 @@
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->amount ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->mm_kyat }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->discount }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->total_amount }}</td>
                         <td class="px-6 py-4 text-sm @if($dataInput->status->name == 'Charge') text-green-600 @elseif($dataInput->status->name == 'Refund') text-red-600 @else text-yellow-600 @endif">
                             {{ $dataInput->status->label() }}

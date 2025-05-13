@@ -17,6 +17,7 @@ class DataInputForm extends Component
     public $start_date;
     public $amount;
     public $mm_kyat;
+    public $discount;
     public $total_amount;
     public $status;
     public $dataInputId;
@@ -32,6 +33,7 @@ class DataInputForm extends Component
             'start_date' => 'required|date',
             'amount' => 'required|numeric|min:0',
             'mm_kyat' => 'required|numeric|min:0',
+            'discount' => 'required|numeric|min:0',
             'total_amount' => 'required|numeric|min:0',
             'status' => 'required|in:1,2,3',
         ];
@@ -50,12 +52,14 @@ class DataInputForm extends Component
             $this->start_date = $dataInput->start_date ? $dataInput->start_date->format('Y-m-d') : null;
             $this->amount = $dataInput->amount;
             $this->mm_kyat = $dataInput->mm_kyat;
+            $this->discount = $dataInput->discount;
             $this->total_amount = $dataInput->total_amount;
             $this->status = $dataInput->status->value;
         } else {
             $this->status = BoostStatus::Charge->value;
             $this->amount = 0;
             $this->mm_kyat = 0;
+            $this->discount = 0;
             $this->total_amount = 0;
         }
     }
@@ -72,6 +76,7 @@ class DataInputForm extends Component
             'start_date' => $this->start_date,
             'amount' => $this->amount,
             'mm_kyat' => $this->mm_kyat,
+            'discount' => $this->discount,
             'total_amount' => $this->total_amount,
             'status' => $this->status,
         ];
@@ -96,9 +101,15 @@ class DataInputForm extends Component
         $this->calculateTotalAmount();
     }
 
+    public function updatedDiscount($value)
+    {
+        $this->discount = (float) $value;
+        $this->calculateTotalAmount();
+    }
+
     private function calculateTotalAmount()
     {
-        $this->total_amount = ((float) $this->mm_kyat) * ((float) $this->amount);
+        $this->total_amount = ((float) $this->mm_kyat * (float) $this->amount) - (float) $this->discount;
     }
 
     public function render()

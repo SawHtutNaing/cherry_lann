@@ -25,6 +25,8 @@ return new class extends Migration
             $table->date('start_date')->nullable();
             $table->decimal('amount', 10, 2)->nullable();
             $table->integer('mm_kyat');
+
+
             $table->decimal('total_amount',10,2);
             $table->unsignedTinyInteger('status'); // Store status as int
             $table->timestamps();

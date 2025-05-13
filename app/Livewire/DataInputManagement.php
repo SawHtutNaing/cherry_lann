@@ -48,6 +48,7 @@ public function export($id)
         'amount' => $boost->amount ?? 0,
         'mm_kyat' => $boost->mm_kyat ?? 0,
         'total_amount' => $boost->total_amount ?? 0,
+        'discount' => $boost->discount ?? 0,
         'created_at' => Carbon::parse($boost->created_at)->format('d/m/y H:i'),
         'updated_at' => Carbon::parse($boost->updated_at)->format('d/m/y H:i'),
         'generated_date' => now()->format('d-m-Y'),

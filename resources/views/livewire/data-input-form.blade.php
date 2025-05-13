@@ -76,6 +76,16 @@
             @enderror
         </div>
 
+        <!-- Discount -->
+        <div class="mb-4">
+            <label class="block text-gray-700">Discount</label>
+            <input type="number" step="0.01" wire:model.debounce.300ms="discount" id="discount"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            @error('discount')
+                <span class="text-red-500">{{ $message }}</span>
+            @enderror
+        </div>
+
         <!-- Total Amount -->
         <div class="mb-4">
             <label class="block text-gray-700">Total Amount:</label>
@@ -112,38 +122,38 @@
         </div>
     </form>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                console.log('JavaScript loaded'); // Debug log
+                const amountInput = document.getElementById('amount');
+                const mmKyatInput = document.getElementById('mm_kyat');
+                const discountInput = document.getElementById('discount');
+                const totalAmountSpan = document.getElementById('total-amount');
 
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-
-                try {
-                    console.log('JavaScript loaded'); // Debug log
-                    const amountInput = document.getElementById('amount');
-                    const mmKyatInput = document.getElementById('mm_kyat');
-                    const totalAmountSpan = document.getElementById('total-amount');
-
-                    if (!amountInput || !mmKyatInput || !totalAmountSpan) {
-                        console.error('Input elements not found');
-                        return;
-                    }
-
-                    function updateTotalAmount() {
-                        const amount = parseFloat(amountInput.value) || 0;
-                        const mmKyat = parseFloat(mmKyatInput.value) || 0;
-                        const total = amount * mmKyat;
-                        totalAmountSpan.textContent = total.toFixed(2);
-                        console.log('Client-side total:', total); // Debug log
-                    }
-
-                    amountInput.addEventListener('input', updateTotalAmount);
-                    mmKyatInput.addEventListener('input', updateTotalAmount);
-
-                    // Initial update
-                    updateTotalAmount();
-                } catch (error) {
-                    console.error('JavaScript error:', error);
+                if (!amountInput || !mmKyatInput || !discountInput || !totalAmountSpan) {
+                    console.error('Input elements not found');
+                    return;
                 }
-            });
-        </script>
 
+                function updateTotalAmount() {
+                    const amount = parseFloat(amountInput.value) || 0;
+                    const mmKyat = parseFloat(mmKyatInput.value) || 0;
+                    const discount = parseFloat(discountInput.value) || 0;
+                    const total = (amount * mmKyat) - discount;
+                    totalAmountSpan.textContent = total.toFixed(2);
+                    console.log('Client-side total:', total); // Debug log
+                }
+
+                amountInput.addEventListener('input', updateTotalAmount);
+                mmKyatInput.addEventListener('input', updateTotalAmount);
+                discountInput.addEventListener('input', updateTotalAmount);
+
+                // Initial update
+                updateTotalAmount();
+            } catch (error) {
+                console.error('JavaScript error:', error);
+            }
+        });
+    </script>
 </div>
