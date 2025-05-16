@@ -92,6 +92,14 @@
             </div> --}}
             <div class="flex flex-col justify-start mt-6 space-y-6 md:flex-row md:space-y-0 md:space-x-6">
 
+
+                <div class="w-full md:w-1/4">
+                    <label for="cus_name_search" class="block text-sm font-medium text-gray-700">Cus Name Search</label>
+                    <input type="text" id="cus_name_search" wire:model='cus_name_search'
+                        class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+
                 <div class="w-full md:w-1/4">
                     <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
                     <input type="date" id="start_date" wire:model='startDate'

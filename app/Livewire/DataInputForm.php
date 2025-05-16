@@ -21,6 +21,8 @@ class DataInputForm extends Component
     public $total_amount;
     public $status;
     public $dataInputId;
+    public $is_remark;
+    public $remark;
     public $boostTypes;
 
     protected function rules()
@@ -54,7 +56,10 @@ class DataInputForm extends Component
             $this->mm_kyat = $dataInput->mm_kyat;
             $this->discount = $dataInput->discount;
             $this->total_amount = $dataInput->total_amount;
+            $this->is_remark = $dataInput->is_remark;
+            $this->remark = $dataInput->remark;
             $this->status = $dataInput->status->value;
+
         } else {
             $this->status = BoostStatus::Charge->value;
             $this->amount = 0;
@@ -78,6 +83,8 @@ class DataInputForm extends Component
             'mm_kyat' => $this->mm_kyat,
             'discount' => $this->discount,
             'total_amount' => $this->total_amount,
+            'is_remark' => $this->is_remark,
+            'remark' => $this->remark,
             'status' => $this->status,
         ];
         if ($this->dataInputId) {

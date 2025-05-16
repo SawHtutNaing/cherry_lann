@@ -91,6 +91,8 @@ public function export($id)
 
     public $status_at;
     public $boosttype;
+    public $check_remark;
+    public $cus_name_search;
 
 
     public function filterData()
@@ -109,12 +111,20 @@ public function export($id)
 
         }
 
+        if($this->cus_name_search){
+            $query->where('customer_name', 'like', '%' . $this->cus_name_search . '%');
+
+        }
+
         if($this->status_at){
             $query->where('status', $this->status_at);
 
         }
 
+        if($this->check_remark){
+            $query->where('is_remark',1);
 
+        }
         $this->dataInputs = $query->get();
 
     }
@@ -127,5 +137,14 @@ public function export($id)
                 'dataInputs' => $this->dataInputs,
             ]
         );
+    }
+
+    public function copy($id){
+        $product = DataInput::find($id);
+
+$newProduct = $product->replicate();
+$newProduct->save();
+$this->filterData();
+
     }
 }

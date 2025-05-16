@@ -24,6 +24,7 @@ class Report extends Component
     public $status_at;
     public $service_by;
     public $pending_total;
+    public $cus_name_search;
 
 
     public function mount()
@@ -61,6 +62,10 @@ class Report extends Component
             $query->where('boost_type_id', $this->boosttype);
         }
 
+        if($this->cus_name_search){
+            $query->where('customer_name', 'like', '%' . $this->cus_name_search . '%');
+
+        }
         if ($this->status_at) {
             $query->where('status', $this->status_at);
         }

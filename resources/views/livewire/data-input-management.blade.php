@@ -39,6 +39,21 @@
                 <input type="date" id="end_date" wire:model='endDate'
                     class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
             </div>
+            <div class="w-full md:w-1/4">
+                <label for="cus_name_search" class="block text-sm font-medium text-gray-700">Cus Name Search</label>
+                <input type="text" id="cus_name_search" wire:model='cus_name_search'
+                    class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+
+            <div class="w-full md:w-1/4">
+                <label for="check_remark" class="block text-sm font-medium text-gray-700">Only Remark</label>
+                <input type="checkbox" id="check_remark" wire:model='check_remark'
+                    class=" border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    >
+            </div>
+
+
 
             <div class="w-full md:w-auto flex items-end">
                 <button id="filterBtn" wire:click='filterData()'
@@ -55,6 +70,8 @@
                 <tr class="bg-gray-100 border-b">
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">No</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Action</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Copy</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Remark</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Customer Name</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Page Name</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Phone</th>
@@ -82,6 +99,18 @@
                                 wire:click="delete({{ $dataInput->id }})"
                                 class="px-4 py-2 text-white bg-red-500 rounded shadow hover:bg-red-400">Delete</button>
                         </td>
+
+                        <td class="px-6 py-4 ">
+
+                            <button wire:confirm='Are You Sure Want To Copy ?'
+                                wire:click="copy({{ $dataInput->id }})"
+                                class="px-4 py-2 text-white bg-green-500 rounded shadow hover:bg-red-400">Copy</button>
+                        </td>
+
+
+
+                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->is_remark == 1  ? '✅ ' : '' }}</td>
+
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->customer_name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->page_name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->phone ?? 'N/A' }}</td>

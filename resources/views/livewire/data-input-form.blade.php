@@ -76,6 +76,8 @@
             @enderror
         </div>
 
+
+
         <!-- Discount -->
         <div class="mb-4">
             <label class="block text-gray-700">Discount</label>
@@ -96,6 +98,34 @@
                 <span class="text-red-500">{{ $message }}</span>
             @enderror
         </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700">Remark </label>
+            <div class="w-full px-4 py-2  border-gray-300  ">
+                <input type="checkbox"
+            @checked($is_remark)
+
+                wire:model.live='is_remark' >
+            </div>
+            @error('is_remark')
+                <span class="text-red-500">{{ $message }}</span>
+            @enderror
+        </div>
+
+
+      @if($is_remark)
+      <div class="mb-4" wire:transition>
+        <label class="block text-gray-700"> Remark Comment</label>
+        <div class="w-full px-4 py-2  border-gray-300  ">
+            <input type="text" wire:model='remark' class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        @error('remark')
+            <span class="text-red-500">{{ $message }}</span>
+        @enderror
+    </div>
+      @endif
+
+
 
         <!-- Status -->
         <div class="mb-4">

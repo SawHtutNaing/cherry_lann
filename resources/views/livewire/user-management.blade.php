@@ -26,13 +26,18 @@
                             {{ $user->status ? 'Enabled' : 'Disabled' }}
                         </td>
                         <td class="px-6 py-4">
-                            <a href="{{ route('users.edit', $user->id) }}"
-                                class="px-4 py-2 bg-yellow-500 rounded shadow hover:bg-yellow-400">Edit</a>
-                            <button wire:click="toggleStatus({{ $user->id }})"
-                                class="px-4 py-2 bg-red-500 rounded shadow hover:bg-red-400">
-                                {{ $user->status ? 'Disable' : 'Enable' }}
-                            </button>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <a href="{{ route('users.edit', $user->id) }}"
+                                    class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400 text-center">
+                                    Edit
+                                </a>
+                                <button wire:click="toggleStatus({{ $user->id }})"
+                                    class="px-4 py-2 text-white bg-red-500 rounded shadow hover:bg-red-400 text-center">
+                                    {{ $user->status ? 'Disable' : 'Enable' }}
+                                </button>
+                            </div>
                         </td>
+
                     </tr>
                 @endforeach
             </tbody>
