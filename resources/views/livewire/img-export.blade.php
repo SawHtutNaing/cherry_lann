@@ -6,137 +6,210 @@
     <title>Export Voucher</title>
     <style>
         body {
-            font-family: 'myanmar', sans-serif;
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f5f7fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
         }
-        .logo-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 20px;
-    gap: 1rem;
-}
-
-.logo {
-    max-width: 5rem;
-    height: auto;
-}
-
-.thank-you-text {
-    color: #0046ad;
-    font-size: 22px;
-    border-bottom: 2px solid #e6f0ff;
-    padding-bottom: 10px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
+        .voucher {
+            width: 800px;
+            background: white;
+            border: 1px solid #ddd;
+            margin: 20px auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td, th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+            color: #333;
+        }
+        .header-table td {
+            border: none;
+            vertical-align: top;
+        }
+        .logo {
+            max-width: 100px;
+            height: auto;
+        }
+        .title {
+            text-align: center;
+            color: #0046ad;
+        }
+        .title h1 {
+            font-size: 24px;
+            margin: 0;
+            font-weight: bold;
+        }
+        .title p {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .invoice-details {
+            text-align: right;
+            font-size: 12px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            background-color: #f0f0f0;
+            padding: 5px;
+        }
+        .service-table th {
+            background-color: #0046ad;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+        }
+        .service-table td {
+            text-align: center;
+        }
+        .totals td {
+            text-align: right;
+        }
+        .totals .label {
+            font-weight: bold;
+        }
+        .payment-methods .label {
+            font-weight: bold;
+        }
+        .footer td {
+            border: none;
+            font-size: 14px;
+            color: #333;
+        }
+        .thank-you {
+            color: #0046ad;
+            font-style: italic;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
-    <div style="width: 100%; max-width: 800px; background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 102, 0.1); overflow: hidden;">
-        <!-- Voucher Content -->
-        <div style="padding: 30px 40px; position: relative;">
-            <table style="width: 100%; text-align: center; margin-bottom: 20px;">
+    <div class="voucher">
+        <!-- Header -->
+        <table class="header-table">
+            <tr>
+                <td style="width: 20%;">
+                    <img src="{{ $logo_base64 }}" alt="Cherry Lann Logo" class="logo">
+                </td>
+                <td style="width: 60%;">
+                    <div class="title">
+                        <h1>Cherry Lann</h1>
+                        <p>Digital Marketing</p>
+                    </div>
+                </td>
+                <td style="width: 20%;" class="invoice-details">
+                    <p>INVOICE NUMBER: {{ $id }}</p>
+                    <p>DATE: {{ $generated_date }}</p>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Customer Information -->
+        <table>
+            <tr>
+                <td colspan="3" class="section-title">Customer Information</td>
+            </tr>
+            <tr>
+                <td style="width: 33%;">
+                    <strong>Customer Name:</strong><br>{{ $customer_name }}
+                </td>
+                <td style="width: 33%;">
+                    <strong>Page Name:</strong><br>{{ $page_name }}
+                </td>
+                <td style="width: 33%;">
+                    <strong>Phone Number:</strong><br>{{ $phone }}
+                </td>
+            </tr>
+        </table>
+
+        <!-- Service Table -->
+        <table class="service-table">
+            <thead>
                 <tr>
-                    <td style="width: 25%;">
-                        <img src="{{ $logo_base64 }}" alt="Logo" style="max-width: 80px;">
-                    </td>
-                    <td style="width: 50%;">
-                        <span style="
-                            color: #0046ad;
-                            font-size: 22px;
-                            font-weight: 600;
-                            border-bottom: 2px solid #e6f0ff;
-                            padding-bottom: 10px;
-                            display: inline-block;
-                            white-space: nowrap;
-                        ">Thank you for choosing Us!</span>
-                    </td>
-                    <td style="width: 25%;">
-                        <img src="{{ $logo_base64 }}" alt="Logo" style="max-width: 80px;">
-                    </td>
+                    <th>NO</th>
+                    <th>Service Type</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Total</th>
                 </tr>
-            </table>
-
-
-            <h2></h2>
-            <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-                <div style="flex: 1; min-width: 250px;">
-                    <div style="margin-bottom: 20px;">
-                        <p style="font-size: 14px; color: #666; margin: 0 0 5px;">Customer Name</p>
-                        <p style="font-size: 18px; color: #333; font-weight: 500; margin: 0; padding: 10px; background-color: rgba(230, 240, 255, 0.5); border-radius: 8px;">{{ $customer_name }}</p>
-                    </div>
-                    <div style="margin-bottom: 20px;">
-                        <p style="font-size: 14px; color: #666; margin: 0 0 5px;">Page Name</p>
-                        <p style="font-size: 18px; color: #333; font-weight: 500; margin: 0; padding: 10px; background-color: rgba(230, 240, 255, 0.5); border-radius: 8px;">{{ $page_name }}</p>
-                    </div>
-                    <div style="margin-bottom: 20px;">
-                        <p style="font-size: 14px; color: #666; margin: 0 0 5px;">Phone</p>
-                        <p style="font-size: 18px; color: #333; font-weight: 500; margin: 0; padding: 10px; background-color: rgba(230, 240, 255, 0.5); border-radius: 8px;">{{ $phone }}</p>
-                    </div>
-                    <div style="margin-bottom: 20px;">
-                        <p style="font-size: 14px; color: #666; margin: 0 0 5px;">Service Type</p>
-                        <p style="font-size: 18px; color: #333; font-weight: 500; margin: 0; padding: 10px; background-color: rgba(230, 240, 255, 0.5); border-radius: 8px;">{{ $boost_type_id }}</p>
-                    </div>
-                </div>
-                <div style="flex: 1; min-width: 250px;">
-                    <div style="margin-bottom: 20px;">
-                        <p style="font-size: 14px; color: #666; margin: 0 0 5px;">Start Date</p>
-                        <p style="font-size: 18px; color: #333; font-weight: 500; margin: 0; padding: 10px; background-color: rgba(230, 240, 255, 0.5); border-radius: 8px;">{{ $start_date }}</p>
-                    </div>
-                </div>
-            </div>
-            @if(Str::contains($boost_type_id, 'Boosting'))
-            <div style="margin-top: 20px; text-align: center;">
-                <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 3px 5px; border-radius: 40px; box-shadow: 0 3px 8px rgba(0, 70, 173, 0.3);">
-                    <p style="font-size: 13px; color: white; margin: 0 0 3px; font-weight: 300;">Quantity</p>
-                    <p style="font-size: 18px; color: white; margin: 0; font-weight: 900;">
-                        @if(Str::contains($boost_type_id, 'Boosting'))
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>{{ $boost_type_id }}</td>
+                    <td>{{ number_format($mm_kyat, 2) }}</td>
+                    <td>
+                          @if(Str::contains($boost_type_id, 'Boosting'))
                         $
             @endif
 
-                        {{ number_format($amount, 2) }}</p>
-                </div>
-            </div>
-            @endif
-            <div style="margin-top: 20px; text-align: center;">
-                <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 3px 5px; border-radius: 40px; box-shadow: 0 3px 8px rgba(0, 70, 173, 0.3);">
-                    <p style="font-size: 13px; color: white; margin: 0 0 3px; font-weight: 300;">Amount</p>
-                    <p style="font-size: 18px; color: white; margin: 0; font-weight: 900;">{{ number_format($mm_kyat, 2) }}</p>
-                </div>
-            </div>
-            <div style="margin-top: 20px; text-align: center;">
+                        {{ number_format($amount, 2) }}</td>
+                    <td>{{ number_format($mm_kyat * $amount, 2) }}</td>
+                </tr>
+            </tbody>
+        </table>
 
-                <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 3px 5px; border-radius: 40px; box-shadow: 0 3px 8px rgba(0, 70, 173, 0.3);">
+        <!-- Totals -->
+        <table class="totals">
+            <tr>
+                <td style="width: 80%;"></td>
+                <td><span class="label">SUBTOTAL:</span> {{ number_format($mm_kyat * $amount, 2) }}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><span class="label">DISCOUNT:</span> {{ number_format($discount, 2) }}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><span class="label">ADVANCE:</span> 0.00</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><span class="label">TOTAL:</span> {{ number_format($total_amount, 2) }}</td>
+            </tr>
+        </table>
 
+        <!-- Founder -->
+        <table>
+            <tr>
+                <td>
+                    <p>Win Zaw Oo</p>
+                    <p>Founder</p>
+                </td>
+            </tr>
+        </table>
 
-                    <p style="font-size: 13px; color: white; margin: 0 0 3px; font-weight: 300;">Discount</p>
-                   <p style="font-size: 18px; color: white; margin: 0; font-weight: 900;">
-                    {{ number_format($discount, 2) }}
+        <!-- Payment Methods -->
+        <table>
+            <tr>
+                <td class="section-title">Payment Methods</td>
+            </tr>
+            <tr>
+                <td>
+                    <p><span class="label">Kpay:</span> 09 422 483 276</p>
+                    <p><span class="label">Wave Pay:</span> 09 422 483 276</p>
+                    <p><span class="label">AYA Pay:</span> 09 422 483 276</p>
+                    <p><span class="label">Yoma Bank Account:</span> 0076 1018 0004 740</p>
+                    <p><span class="label">CB Bank Account:</span> 0107 6001 0006 1239</p>
+                    <p><span class="label">Account Name:</span> Win Zaw Oo</p>
+                </td>
+            </tr>
+        </table>
 
-                   </p>
-
-
-
-            </div>
-        </div>
-
-
-            <div style="margin-top: 20px; text-align: center;">
-                <div style="display: inline-block; background: linear-gradient(135deg, #0046ad 0%, #0073e6 100%); padding: 3px 5px; border-radius: 40px; box-shadow: 0 3px 8px rgba(0, 70, 173, 0.3);">
-                    <p style="font-size: 13px; color: white; margin: 0 0 3px; font-weight: 300;">Total Amount</p>
-                    <p style="font-size: 18px; color: white; margin: 0; font-weight: 900;">{{ number_format($total_amount, 2) }}</p>
-                </div>
-            </div>
-        </div>
+        <!-- Footer -->
+        <table class="footer">
+            <tr>
+                <td style="width: 50%;"></td>
+                <td style="width: 50%;" class="thank-you">Thank you for your business!</td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>
