@@ -32,7 +32,7 @@ public function export($id)
 
         // Load and convert the logo to base64
 
-        $signPath = public_path('images/sign.jpeg');
+        $signPath = public_path('images/sign.jpg');
         $logoPath = config('app.logo_path', public_path('images/logo.jpeg'));
         $logoBase64 = '';
         $signBase64 = '';
