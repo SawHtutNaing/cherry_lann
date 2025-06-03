@@ -31,8 +31,11 @@ public function export($id)
         $boost = DataInput::with('boostType')->findOrFail($id);
 
         // Load and convert the logo to base64
+
+        $signPath = public_path('images/sign.jpeg');
         $logoPath = config('app.logo_path', public_path('images/logo.jpeg'));
         $logoBase64 = '';
+        $signBase64 = '';
         if (file_exists($logoPath)) {
             $logoData = file_get_contents($logoPath);
             $logoBase64 = 'data:image/jpeg;base64,' . base64_encode($logoData);
@@ -41,6 +44,18 @@ public function export($id)
             // Optionally, set a fallback logo or handle the missing logo case
             $logoBase64 = 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('images/fallback-logo.jpeg')));
         }
+
+
+         if (file_exists($signPath)) {
+            $signData = file_get_contents($signPath);
+            $signBase64 = 'data:image/jpeg;base64,' . base64_encode($signData);
+        } else {
+            // \Log::warning('Logo file not found at: ' . $logoPath);
+            // Optionally, set a fallback logo or handle the missing logo case
+            $signBase64 = 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('images/fallback-logo.jpeg')));
+        }
+
+
 
         // Validate calculations
         $subtotal = ($boost->mm_kyat ?? 0) * ($boost->amount ?? 0);
@@ -62,6 +77,7 @@ public function export($id)
             'discount' => $boost->discount ?? 0,
             'generated_date' => now()->format('d-m-Y'),
             'logo_base64' => $logoBase64,
+            'sign_base64' => $signBase64,
         ])->render();
 
         // Initialize mPDF
@@ -70,13 +86,19 @@ public function export($id)
             'fontdata' => [
                 'myanmar' => [
                     'R' => 'padauk.ttf',
-                    'B' => 'padauk.ttf',
+                    'B' => 'Padauk-Bold.ttf',
+                       'EB'=> 'ex_bold.ttf'
+                ],
+                'mm_bold'=>  [
+                    'R' => 'Montserrat-Black.ttf' ,
+                    'B' => 'Montserrat-Black.ttf',
+                       'EB'=> 'Montserrat-Black.ttf'
                 ],
 
             ],
             'format' => 'A4',
             'mode' => 'utf-8',
-            'default_font' => 'arial', // Use Arial to match UI
+            'default_font' => 'myanmar', // Use Arial to match UI
         ]);
 
         $mpdf->WriteHTML($html);
