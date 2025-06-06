@@ -245,7 +245,7 @@ SUBTOTAL:
 <tr>
     <td colspan="3"></td>
      <td style="text-align: right; font-weight: bold;">
-DISCOUNT
+DISCOUNT:
     </td>
     <td style="text-align: right; font-weight: bold;"> <span class="service-table"> {{ number_format($discount, 2) }} </span> </td>
 </tr>
