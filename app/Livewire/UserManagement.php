@@ -16,6 +16,10 @@ class UserManagement extends Component
     public function mount()
     {
         $this->users = User::all();
+        if(auth()->user()->role != 'admin'){
+            return redirect()->route('dashboard');
+        }
+
     }
 
     public function toggleStatus(User $user)
