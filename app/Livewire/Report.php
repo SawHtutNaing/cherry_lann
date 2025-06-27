@@ -59,7 +59,7 @@ class Report extends Component
             $query->where('user_id', $this->service_by);
         }
         if ($this->boosttype) {
-            $query->where('boost_type_id', $this->boosttype);
+            $query->whereIn('boost_type_id', $this->boosttype);
         }
 
         if($this->cus_name_search){

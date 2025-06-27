@@ -128,9 +128,9 @@
 
                 <div class="w-full md:w-1/4">
                     <label for="boosttype" class="block text-sm font-medium text-gray-700">Service Type</label>
-                    <select wire:model="boosttype"
+                    <select  multiple wire:model="boosttype"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">All</option>
+                        {{-- <option value="">All</option> --}}
                         @foreach ($boostTypes as $boostType)
                             <option value="{{ $boostType->id }}">{{ $boostType->name }}</option>
                         @endforeach

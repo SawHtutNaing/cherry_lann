@@ -45,15 +45,11 @@
                     class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
             </div>
 
-
             <div class="w-full md:w-1/4">
                 <label for="check_remark" class="block text-sm font-medium text-gray-700">Only Remark</label>
                 <input type="checkbox" id="check_remark" wire:model='check_remark'
-                    class=" border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                    >
+                    class="border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
             </div>
-
-
 
             <div class="w-full md:w-auto flex items-end">
                 <button id="filterBtn" wire:click='filterData()'
@@ -64,13 +60,12 @@
         </div>
     </div>
 
-    <div class="mt-6 overflow-x-auto">
+    <div class="mt-6 overflow-x-auto overflow-y-auto h-[50vh] relative">
         <table class="min-w-max w-full bg-white border border-gray-200">
-            <thead>
-                <tr class="bg-gray-100 border-b">
+            <thead class="sticky top-0 bg-gray-100">
+                <tr class="border-b">
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">No</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Action</th>
-
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Customer Name</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Page Name</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Phone</th>
@@ -82,11 +77,9 @@
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total Amount</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Status</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Remark</th>
-
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Created At</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Updated At</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Export</th>
-
                 </tr>
             </thead>
             <tbody>
@@ -96,22 +89,13 @@
                         <td class="px-6 py-4 flex flex-col gap-y-2">
                             <a href="{{ route('data-inputs.edit', $dataInput->id) }}"
                                 class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400">Edit</a>
-
-                                 <button wire:confirm='Are You Sure Want To Copy ?'
+                            <button wire:confirm='Are You Sure Want To Copy ?'
                                 wire:click="copy({{ $dataInput->id }})"
                                 class="px-4 py-2 text-white bg-green-500 rounded shadow hover:bg-red-400">Copy</button>
-
-
                             <button wire:confirm='Are You Sure Want To Delete ?'
                                 wire:click="delete({{ $dataInput->id }})"
                                 class="px-4 py-2 text-white bg-red-500 rounded shadow hover:bg-red-400">Delete</button>
                         </td>
-
-
-
-
-
-
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->customer_name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->page_name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->phone ?? 'N/A' }}</td>
@@ -127,7 +111,6 @@
                             {{ $dataInput->status->label() }}
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->is_remark == 1  ? '✅ ' : '' }}</td>
-
                         <td class="px-6 py-4 text-sm text-gray-800">
                             {{ \Carbon\Carbon::parse($dataInput->created_at)->format('d/m/y H:i') }}
                         </td>
@@ -140,7 +123,6 @@
                                 Export
                             </button>
                         </td>
-
                     </tr>
                 @endforeach
             </tbody>

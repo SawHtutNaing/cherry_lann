@@ -15,9 +15,9 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 class DataExport implements FromView, WithStyles, WithColumnFormatting
 {
     public $dataInputs;
-    public $charges, $refund , $pending_total;
+    public $charges, $refund, $pending_total;
 
-    public function __construct($dataInputs, $charges, $refund , $pending_total)
+    public function __construct($dataInputs, $charges, $refund, $pending_total)
     {
         $this->dataInputs = $dataInputs;
         $this->charges = $charges;
@@ -47,10 +47,10 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
         ]);
 
         // Get the start row of the second table dynamically
-        $secondTableStartRow = $firstTableLastRow + 2; // Add some spacing
+        $secondTableStartRow = 4; // Add some spacing
 
         // Apply header styling ONLY to the second table's thead
-        $sheet->getStyle("A{$secondTableStartRow}:D{$secondTableStartRow}")->applyFromArray([
+        $sheet->getStyle("A{$secondTableStartRow}:K{$secondTableStartRow}")->applyFromArray([
             'font' => [
                 'bold' => true,
                 'size' => 10, // Font size for headers
@@ -67,8 +67,6 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
 
         return [];
     }
-
-
 
     public function columnFormats(): array
     {
