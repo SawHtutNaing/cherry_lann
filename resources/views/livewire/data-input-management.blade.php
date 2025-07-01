@@ -61,28 +61,28 @@
     </div>
 
     <div class="mt-6 overflow-x-auto overflow-y-auto h-[50vh] relative">
-        <table class="min-w-max w-full bg-white border border-gray-200">
+        <table class="min-w-[1500px] w-full bg-white border border-gray-200 table-fixed">
             <thead class="sticky top-0 bg-gray-100">
                 <tr class="border-b">
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">No</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Action</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Customer Name</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Page Name</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Phone</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Service Type</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Start Date</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Quantity</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Amount</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Discount</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total Amount</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Status</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Remark</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Created At</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Updated At</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Export</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[60px]">No</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[180px]">Action</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[150px]">Customer Name</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[150px]">Page Name</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[120px]">Phone</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[120px]">Service Type</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[100px]">Start Date</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[80px]">Quantity</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[100px]">Amount</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[100px]">Discount</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[120px]">Total Amount</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[100px]">Status</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[100px]">Remark</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[120px]">Created At</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[120px]">Updated At</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 w-[100px]">Export</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody*.
                 @foreach ($dataInputs as $dataInput)
                     <tr class="border-b" wire:key='{{ $dataInput->id }}'>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $loop->iteration }}</td>
