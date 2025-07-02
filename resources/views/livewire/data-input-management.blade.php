@@ -88,7 +88,7 @@
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $loop->iteration }}</td>
                         <td class="px-6 py-4 flex flex-col gap-y-2">
                             <a href="{{ route('data-inputs.edit', $dataInput->id) }}"
-                                class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400">Edit</a>
+                                class="px-4 text-center py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400">Edit</a>
                             <button wire:confirm='Are You Sure Want To Copy ?'
                                 wire:click="copy({{ $dataInput->id }})"
                                 class="px-4 py-2 text-white bg-green-500 rounded shadow hover:bg-red-400">Copy</button>
