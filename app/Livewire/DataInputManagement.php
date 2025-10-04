@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Storage;
 use App\BoostStatus;
 use App\Models\BoostType;
 use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf as PDF;
+ use Illuminate\Support\Facades\DB;
+
 
 use Illuminate\Support\Facades\Response;
 
@@ -179,25 +181,46 @@ $this->filterData();
 
     }
 
-    public function exportDatabase()
-    {
-        $ds = DIRECTORY_SEPARATOR;
-        $path = storage_path('app' . $ds . 'backups');
 
-        if (!is_dir($path)) {
-            mkdir($path, 0755, true);
+public function exportDatabase()
+{
+    $ds = DIRECTORY_SEPARATOR;
+    $path = storage_path('app' . $ds . 'backups');
+
+    if (!is_dir($path)) {
+        mkdir($path, 0755, true);
+    }
+
+    $filename = "backup-" . Carbon::now()->format('Y-m-d-H-i-s') . ".sql";
+    $fullPath = $path . $ds . $filename;
+
+    $tables = DB::select('SHOW TABLES');
+    $dbName = config('database.connections.mysql.database');
+    $key = 'Tables_in_' . $dbName;
+    $sqlScript = '';
+
+    foreach ($tables as $table) {
+        $tableName = $table->$key;
+
+        // Create table statement
+        $create = DB::select("SHOW CREATE TABLE `$tableName`")[0]->{'Create Table'};
+        $sqlScript .= "DROP TABLE IF EXISTS `$tableName`;\n$create;\n\n";
+
+        // Insert data
+        $rows = DB::table($tableName)->get();
+        foreach ($rows as $row) {
+            $values = array_map(fn($v) => DB::getPdo()->quote($v), (array)$row);
+            $sqlScript .= "INSERT INTO `$tableName` VALUES (" . implode(',', $values) . ");\n";
         }
 
-        $filename = "backup-" . Carbon::now()->format('Y-m-d-H-i-s') . ".sql";
-        $command = "mysqldump --user=" . config('database.connections.mysql.username') . " --password=" . config('database.connections.mysql.password') . " --host=" . config('database.connections.mysql.host') . " " . config('database.connections.mysql.database') . " > " . $path . $ds . $filename;
-
-        $returnVar = NULL;
-        $output = NULL;
-
-        exec($command, $output, $returnVar);
-
-        session()->flash('success', 'Database exported successfully!');
-
-        return response()->download($path . $ds . $filename)->deleteFileAfterSend(true);
+        $sqlScript .= "\n\n";
     }
+
+    file_put_contents($fullPath, $sqlScript);
+
+    session()->flash('success', 'Database exported successfully!');
+
+    return response()->download($fullPath)->deleteFileAfterSend(true);
+}
+
 }
