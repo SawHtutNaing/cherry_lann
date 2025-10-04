@@ -10,10 +10,11 @@
     <div class="p-6 bg-white rounded-lg shadow-lg">
         <a href="{{ route('data-inputs.create') }}"
             class="inline-block mb-4 px-4 py-2 text-white bg-blue-500 rounded shadow hover:bg-blue-400">Create New Data Input</a>
+@if(auth()->user()->role == 'admin')
 
         <button wire:click="exportDatabase"
             class="inline-block mb-4 px-4 py-2 text-white bg-green-500 rounded shadow hover:bg-green-400">Export Database</button>
-
+@endif
         <div class="flex flex-col gap-4 md:flex-row md:flex-wrap">
             <div class="w-full md:w-1/4">
                 <label for="boosttype" class="block text-sm font-medium text-gray-700">Service Type</label>
