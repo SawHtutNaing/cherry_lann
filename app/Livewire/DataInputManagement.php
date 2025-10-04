@@ -178,4 +178,26 @@ $newProduct->save();
 $this->filterData();
 
     }
+
+    public function exportDatabase()
+    {
+        $ds = DIRECTORY_SEPARATOR;
+        $path = storage_path('app' . $ds . 'backups');
+
+        if (!is_dir($path)) {
+            mkdir($path, 0755, true);
+        }
+
+        $filename = "backup-" . Carbon::now()->format('Y-m-d-H-i-s') . ".sql";
+        $command = "mysqldump --user=" . config('database.connections.mysql.username') . " --password=" . config('database.connections.mysql.password') . " --host=" . config('database.connections.mysql.host') . " " . config('database.connections.mysql.database') . " > " . $path . $ds . $filename;
+
+        $returnVar = NULL;
+        $output = NULL;
+
+        exec($command, $output, $returnVar);
+
+        session()->flash('success', 'Database exported successfully!');
+
+        return response()->download($path . $ds . $filename)->deleteFileAfterSend(true);
+    }
 }

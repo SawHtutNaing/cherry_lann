@@ -1,9 +1,18 @@
 <div class="container mx-auto mt-8 px-4">
+    @if (session()->has('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span class="block sm:inline">{{ session('success') }}</span>
+        </div>
+    @endif
+
     <h1 class="mb-6 text-2xl font-semibold">Data Inputs</h1>
 
     <div class="p-6 bg-white rounded-lg shadow-lg">
         <a href="{{ route('data-inputs.create') }}"
             class="inline-block mb-4 px-4 py-2 text-white bg-blue-500 rounded shadow hover:bg-blue-400">Create New Data Input</a>
+
+        <button wire:click="exportDatabase"
+            class="inline-block mb-4 px-4 py-2 text-white bg-green-500 rounded shadow hover:bg-green-400">Export Database</button>
 
         <div class="flex flex-col gap-4 md:flex-row md:flex-wrap">
             <div class="w-full md:w-1/4">
