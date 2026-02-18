@@ -130,7 +130,7 @@
         <!-- Status -->
         <div class="mb-4">
             <label class="block text-gray-700">Status:</label>
-            <select wire:model.debounce.300ms="status"
+            <select wire:model.live="status"
                 class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Select</option>
                 <option value="1">Charge</option>
@@ -142,6 +142,52 @@
             @enderror
         </div>
 
+        @if ((int) $status === 1)
+            <!-- Client Side Image -->
+            <div class="mb-4">
+                <label class="block text-gray-700">Client Side Image:</label>
+                <input type="file" wire:model.live="client_side_image"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                @error('client_side_image')
+                    <span class="text-red-500">{{ $message }}</span>
+                @enderror
+
+                <!-- New Image Preview -->
+                @if ($client_side_image instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
+                    <div class="mt-2">
+                        <img src="{{ $client_side_image->temporaryUrl() }}" class="max-w-full h-auto object-cover rounded-md shadow-md">
+                    </div>
+                @elseif (is_string($client_side_image))
+                    <!-- Existing Image Display -->
+                    <div class="mt-2">
+                        <img src="{{ asset('storage/' . $client_side_image) }}" class="max-w-full h-auto object-cover rounded-md shadow-md">
+                    </div>
+                @endif
+            </div>
+
+            <!-- Service Side Image -->
+            <div class="mb-4">
+                <label class="block text-gray-700">Service Side Image:</label>
+                <input type="file" wire:model.live="service_side_image"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                @error('service_side_image')
+                    <span class="text-red-500">{{ $message }}</span>
+                @enderror
+
+                <!-- New Image Preview -->
+                @if ($service_side_image instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
+                    <div class="mt-2">
+                        <img src="{{ $service_side_image->temporaryUrl() }}" class="max-w-full h-auto object-cover rounded-md shadow-md">
+                    </div>
+                @elseif (is_string($service_side_image))
+                    <!-- Existing Image Display -->
+                    <div class="mt-2">
+                        <img src="{{ asset('storage/' . $service_side_image) }}" class="max-w-full h-auto object-cover rounded-md shadow-md">
+                    </div>
+                @endif
+            </div>
+        @endif
+
         <!-- Buttons -->
         <div class="flex justify-end space-x-4">
             <a href="{{ route('dashboard') }}"
@@ -151,39 +197,4 @@
             </button>
         </div>
     </form>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
-                console.log('JavaScript loaded'); // Debug log
-                const amountInput = document.getElementById('amount');
-                const mmKyatInput = document.getElementById('mm_kyat');
-                const discountInput = document.getElementById('discount');
-                const totalAmountSpan = document.getElementById('total-amount');
-
-                if (!amountInput || !mmKyatInput || !discountInput || !totalAmountSpan) {
-                    console.error('Input elements not found');
-                    return;
-                }
-
-                function updateTotalAmount() {
-                    const amount = parseFloat(amountInput.value) || 0;
-                    const mmKyat = parseFloat(mmKyatInput.value) || 0;
-                    const discount = parseFloat(discountInput.value) || 0;
-                    const total = (amount * mmKyat) - discount;
-                    totalAmountSpan.textContent = total.toFixed(2);
-                    console.log('Client-side total:', total); // Debug log
-                }
-
-                amountInput.addEventListener('input', updateTotalAmount);
-                mmKyatInput.addEventListener('input', updateTotalAmount);
-                discountInput.addEventListener('input', updateTotalAmount);
-
-                // Initial update
-                updateTotalAmount();
-            } catch (error) {
-                console.error('JavaScript error:', error);
-            }
-        });
-    </script>
 </div>
