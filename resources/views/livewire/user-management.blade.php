@@ -32,8 +32,13 @@
                                     Edit
                                 </a>
                                 <button wire:click="toggleStatus({{ $user->id }})"
-                                    class="px-4 py-2 text-white bg-red-500 rounded shadow hover:bg-red-400 text-center">
+                                    class="px-4 py-2 text-white bg-green-500 rounded shadow hover:bg-green-400 text-center">
                                     {{ $user->status ? 'Disable' : 'Enable' }}
+                                </button>
+                                <button wire:click="deleteUser({{ $user->id }})"
+                                    onclick="confirm('Are you sure you want to delete this user and all associated data?') || event.stopImmediatePropagation()"
+                                    class="px-4 py-2 text-white bg-red-500 rounded shadow hover:bg-red-400 text-center">
+                                    Delete
                                 </button>
                             </div>
                         </td>

@@ -29,8 +29,15 @@ class UserManagement extends Component
         $this->users = User::all();
     }
 
-    public function render()
+    public function deleteUser(User $user)
     {
-        return view('livewire.user-management');
+        if (auth()->user()->role != 'admin') {
+            session()->flash('error', 'You are not authorized to delete users.');
+            return;
+        }
+
+        $user->delete();
+        session()->flash('message', 'User deleted successfully.');
+        $this->users = User::all();
     }
 }

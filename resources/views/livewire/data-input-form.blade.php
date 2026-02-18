@@ -76,8 +76,6 @@
             @enderror
         </div>
 
-
-
         <!-- Discount -->
         <div class="mb-4">
             <label class="block text-gray-700">Discount</label>
@@ -99,33 +97,31 @@
             @enderror
         </div>
 
+        <!-- Remark Toggle -->
         <div class="mb-4">
-            <label class="block text-gray-700">Remark </label>
-            <div class="w-full px-4 py-2  border-gray-300  ">
+            <label class="block text-gray-700">Remark</label>
+            <div class="w-full px-4 py-2 border-gray-300">
                 <input type="checkbox"
-            @checked($is_remark)
-
-                wire:model.live='is_remark' >
+                    @checked($is_remark)
+                    wire:model.live="is_remark">
             </div>
             @error('is_remark')
                 <span class="text-red-500">{{ $message }}</span>
             @enderror
         </div>
 
-
-      @if($is_remark)
-      <div class="mb-4" wire:transition>
-        <label class="block text-gray-700"> Remark Comment</label>
-        <div class="w-full px-4 py-2  border-gray-300  ">
-            <input type="text" wire:model='remark' class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        @error('remark')
-            <span class="text-red-500">{{ $message }}</span>
-        @enderror
-    </div>
-      @endif
-
-
+        @if ($is_remark)
+            <div class="mb-4" wire:transition>
+                <label class="block text-gray-700">Remark Comment</label>
+                <div class="w-full px-4 py-2 border-gray-300">
+                    <input type="text" wire:model="remark"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                @error('remark')
+                    <span class="text-red-500">{{ $message }}</span>
+                @enderror
+            </div>
+        @endif
 
         <!-- Status -->
         <div class="mb-4">
@@ -146,19 +142,22 @@
             <!-- Client Side Image -->
             <div class="mb-4">
                 <label class="block text-gray-700">Client Side Image:</label>
-                <input type="file" wire:model.live="client_side_image"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mb-1 text-xs text-gray-400">Max 2MB · JPEG, PNG, WebP · Image will be compressed automatically.</p>
+                <input
+                    type="file"
+                    id="client_side_image_input"
+                    accept="image/jpeg,image/png,image/webp"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
                 @error('client_side_image')
-                    <span class="text-red-500">{{ $message }}</span>
+                    <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
                 @enderror
 
-                <!-- New Image Preview -->
                 @if ($client_side_image instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
                     <div class="mt-2">
                         <img src="{{ $client_side_image->temporaryUrl() }}" class="max-w-full h-auto object-cover rounded-md shadow-md">
                     </div>
                 @elseif (is_string($client_side_image))
-                    <!-- Existing Image Display -->
                     <div class="mt-2">
                         <img src="{{ asset('storage/' . $client_side_image) }}" class="max-w-full h-auto object-cover rounded-md shadow-md">
                     </div>
@@ -168,19 +167,22 @@
             <!-- Service Side Image -->
             <div class="mb-4">
                 <label class="block text-gray-700">Service Side Image:</label>
-                <input type="file" wire:model.live="service_side_image"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="mb-1 text-xs text-gray-400">Max 2MB · JPEG, PNG, WebP · Image will be compressed automatically.</p>
+                <input
+                    type="file"
+                    id="service_side_image_input"
+                    accept="image/jpeg,image/png,image/webp"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
                 @error('service_side_image')
-                    <span class="text-red-500">{{ $message }}</span>
+                    <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
                 @enderror
 
-                <!-- New Image Preview -->
                 @if ($service_side_image instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
                     <div class="mt-2">
                         <img src="{{ $service_side_image->temporaryUrl() }}" class="max-w-full h-auto object-cover rounded-md shadow-md">
                     </div>
                 @elseif (is_string($service_side_image))
-                    <!-- Existing Image Display -->
                     <div class="mt-2">
                         <img src="{{ asset('storage/' . $service_side_image) }}" class="max-w-full h-auto object-cover rounded-md shadow-md">
                     </div>
@@ -198,3 +200,104 @@
         </div>
     </form>
 </div>
+
+<script>
+/**
+ * Compresses an image File to JPEG with a max width and quality setting.
+ * Returns a Promise that resolves to a new compressed File.
+ */
+function compressImage(file, maxWidth = 1024, quality = 0.75) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onerror = () => reject(new Error('Failed to read file.'));
+
+        reader.onload = (e) => {
+            const img = new Image();
+
+            img.onerror = () => reject(new Error('Failed to load image.'));
+
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width  = img.width;
+                let height = img.height;
+
+                // Downscale only if wider than maxWidth
+                if (width > maxWidth) {
+                    height = Math.round(height * maxWidth / width);
+                    width  = maxWidth;
+                }
+
+                canvas.width  = width;
+                canvas.height = height;
+                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (!blob) return reject(new Error('Canvas compression failed.'));
+                        resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' }));
+                    },
+                    'image/jpeg',
+                    quality
+                );
+            };
+
+            img.src = e.target.result;
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+/**
+ * Wires a plain <input type="file"> to a Livewire property via @this.upload().
+ * Compresses the image client-side first, then uploads the smaller file.
+ * Validation errors from the server are surfaced via Livewire's error bag.
+ */
+function wireImageInput(inputId, livewireProperty) {
+    document.getElementById(inputId).addEventListener('change', async function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Basic client-side type guard before even hitting the server
+        if (!file.type.match(/^image\/(jpeg|png|webp)$/)) {
+            @this.addError(livewireProperty, 'The file must be a JPEG, PNG, or WebP image.');
+            this.value = '';
+            return;
+        }
+
+        // 2MB guard (matches server rule: max:2048)
+        if (file.size > 2 * 1024 * 1024) {
+            @this.addError(livewireProperty, 'The image must not be larger than 2MB.');
+            this.value = '';
+            return;
+        }
+
+        try {
+            const compressed = await compressImage(file);
+
+            @this.upload(
+                livewireProperty,
+                compressed,
+                // ✅ Upload finished — Livewire will re-render and show the preview
+                () => {},
+                // ❌ Server-side error (e.g. failed validation) — Livewire populates $errors automatically
+                (error) => {
+                    console.error('Upload error for ' + livewireProperty + ':', error);
+                },
+                // ⏳ Progress (optional — wire up a progress bar here if needed)
+                (progress) => {}
+            );
+        } catch (err) {
+            @this.addError(livewireProperty, 'Could not process the image. Please try another file.');
+            console.error(err);
+        }
+    });
+}
+
+// Boot after Livewire is ready so @this is available
+document.addEventListener('livewire:init', () => {
+    wireImageInput('client_side_image_input',  'client_side_image');
+    wireImageInput('service_side_image_input', 'service_side_image');
+});
+</script>
