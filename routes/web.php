@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DataInputImageController;
 use App\Http\Controllers\ProfileController;
 use App\Livewire\BoostTypeManagement;
 use App\Livewire\DataInputForm;
@@ -28,6 +29,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('data-inputs/{dataInputId}/edit', DataInputForm::class)->name('data-inputs.edit');
     Route::get('/report', Report::class)->name('report');
     Route::get('/services-types' , BoostTypeManagement::class)->name('boost_types');
+
+    Route::post('data-inputs/{id}/image/{type}', [DataInputImageController::class, 'upload'])->name('data-inputs.image.upload');
+Route::delete('data-inputs/{id}/image/{type}', [DataInputImageController::class, 'delete'])->name('data-inputs.image.delete');
 
 });
 Route::get('users', UserManagement::class)->name('users.index');
