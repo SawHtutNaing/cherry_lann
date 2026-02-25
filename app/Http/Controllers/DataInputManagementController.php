@@ -122,9 +122,17 @@ class DataInputManagementController extends Controller
                 'default_font' => 'myanmar',
             ]);
 
-            return response()->streamDownload(function () use ($pdf) {
-                echo $pdf->output();
-            }, "voucher_{$id}.pdf");
+            $pdfContent = $pdf->output();
+
+            return response($pdfContent, 200, [
+                'Content-Type'           => 'application/pdf',
+                'Content-Disposition'    => 'attachment; filename="voucher_' . $id . '.pdf"',
+                'Content-Length'         => strlen($pdfContent),
+                'Cache-Control'          => 'no-cache, no-store, must-revalidate',
+                'Pragma'                 => 'no-cache',
+                'Expires'                => '0',
+                'X-Content-Type-Options' => 'nosniff',
+            ]);
 
         } catch (\Exception $e) {
             \Log::error('Failed to export voucher: ' . $e->getMessage());
