@@ -47,4 +47,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function dataInputs()
+    {
+        return $this->hasMany(DataInput::class);
+    }
 }

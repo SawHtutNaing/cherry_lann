@@ -1,6 +1,18 @@
 <div class="container mx-auto mt-8">
+    @if (session()->has('message'))
+        <div class="px-4 py-2 mb-4 text-white bg-green-500 rounded shadow">
+            {{ session('message') }}
+        </div>
+    @endif
+    @if (session()->has('error'))
+        <div class="px-4 py-2 mb-4 text-white bg-red-500 rounded shadow">
+            {{ session('error') }}
+        </div>
+    @endif
     @if ($errors->any())
-        {!! implode('', $errors->all('<div>:message</div>')) !!}
+        <div class="px-4 py-2 mb-4 text-white bg-red-500 rounded shadow">
+            {!! implode('', $errors->all('<div>:message</div>')) !!}
+        </div>
     @endif
     <h1 class="mb-6 text-2xl font-semibold">User Management</h1>
     <a href="{{ route('users.create') }}" class="px-4 py-2 text-white bg-blue-500 rounded shadow hover:bg-blue-400">Create
@@ -31,10 +43,17 @@
                                     class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400 text-center">
                                     Edit
                                 </a>
-                                <button wire:click="toggleStatus({{ $user->id }})"
-                                    class="px-4 py-2 text-white bg-red-500 rounded shadow hover:bg-red-400 text-center">
-                                    {{ $user->status ? 'Disable' : 'Enable' }}
-                                </button>
+                                @if (auth()->id() !== $user->id)
+                                    <button wire:click="toggleStatus({{ $user->id }})"
+                                        class="px-4 py-2 text-white {{ $user->status ? 'bg-orange-500 hover:bg-orange-400' : 'bg-green-500 hover:bg-green-400' }} rounded shadow text-center">
+                                        {{ $user->status ? 'Disable' : 'Enable' }}
+                                    </button>
+                                    <button wire:click="delete({{ $user->id }})"
+                                        wire:confirm="Are you sure you want to delete this user?"
+                                        class="px-4 py-2 text-white bg-red-600 rounded shadow hover:bg-red-500 text-center">
+                                        Delete
+                                    </button>
+                                @endif
                             </div>
                         </td>
 
