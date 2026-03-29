@@ -7,6 +7,7 @@ enum BoostStatus: int
     case Charge = 1;
     case Refund = 2;
     case Pending = 3;
+    case Ongoing = 4;
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum BoostStatus: int
             self::Charge => 'Charge',
             self::Refund => 'Refund',
             self::Pending => 'Pending',
+            self::Ongoing => 'Ongoing',
         };
     }
 }

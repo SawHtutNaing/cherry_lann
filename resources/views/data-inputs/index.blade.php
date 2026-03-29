@@ -53,6 +53,7 @@
                         <option value="1" @selected($statusAt == '1')>Charge</option>
                         <option value="2" @selected($statusAt == '2')>Refund</option>
                         <option value="3" @selected($statusAt == '3')>Pending</option>
+                        <option value="4" @selected($statusAt == '4')>Ongoing</option>
                     </select>
                 </div>
                 <div>

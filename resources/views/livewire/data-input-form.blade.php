@@ -136,6 +136,7 @@
                 <option value="1">Charge</option>
                 <option value="2">Refund</option>
                 <option value="3">Pending</option>
+                <option value="4">Ongoing</option>
             </select>
             @error('status')
                 <span class="text-red-500">{{ $message }}</span>
