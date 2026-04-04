@@ -63,7 +63,9 @@ class DataInputManagementController extends Controller
     public function copy($id)
     {
         $original = DataInput::where('user_id', auth()->id())->findOrFail($id);
-        $copy = $original->replicate();
+            $copy = $original->replicate(['client_side_image', 'service_side_image']);
+    $copy->status     = '3';
+
         $copy->save();
 
         return redirect()->back()
