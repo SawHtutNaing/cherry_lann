@@ -37,7 +37,7 @@ class DataInputForm extends Component
             'mm_kyat' => 'required|numeric|min:0',
             'discount' => 'required|numeric|min:0',
             'total_amount' => 'required|numeric|min:0',
-            'status' => 'required|in:1,2,3',
+            'status' => 'required|in:1,2,3,4',
         ];
     }
 

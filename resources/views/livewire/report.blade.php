@@ -113,8 +113,15 @@
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Discount</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total Amount</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Status</th>
+    @if ($isExport)
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Remark</th>
+
+    @endif
+    @if (!$isExport)
+
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Client Image</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Cherry Lann Image</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -135,6 +142,12 @@
                         <td class="px-6 py-4 text-sm {{ $dataInput->status->name == 'Charge' ? 'text-green-600' : 'text-red-600' }}">
                             {{ $dataInput->status->label() }}
                         </td>
+
+    @if ($isExport)
+                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->remark }}</td>
+
+@endif
+    @if (!$isExport)
 
                         {{-- Client Image (preview only) --}}
                         <td class="px-6 py-4 text-sm text-gray-800">
@@ -159,11 +172,13 @@
                                 <span class="text-xs text-gray-400 italic">No image</span>
                             @endif
                         </td>
+                        @endif
                     </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
+    @if (!$isExport)
 
     {{-- Image Preview Modal --}}
     <div id="reportImageModal"
@@ -194,4 +209,5 @@
             if (e.key === 'Escape') closeReportImageModal();
         });
     </script>
+    @endif
 </div>
