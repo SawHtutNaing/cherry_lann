@@ -19,7 +19,15 @@ class Report extends Component
     protected $paginationTheme = 'tailwind';
 
     public $dataInputs;
+
+    /**
+     * Always false for the live Livewire page. The blade view is shared
+     * with a separate export/print route which sets this to true via
+     * view()->with('isExport', true) — never toggle it inside this
+     * component.
+     */
     public $isExport = false;
+
     public $startDate, $endDate;
     public $servicesBys;
     public $boostTypes;
@@ -32,7 +40,6 @@ class Report extends Component
     public $pending_total = 0;
     public $totalCount = 0;
     public $cus_name_search;
-
     public function mount()
     {
         $this->startDate = now()->subDays(30)->format('Y-m-d');
