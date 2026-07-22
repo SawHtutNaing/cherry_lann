@@ -18,15 +18,10 @@ class Report extends Component
 
     protected $paginationTheme = 'tailwind';
 
-    public $dataInputs;
-
-    /**
-     * Always false for the live Livewire page. The blade view is shared
-     * with a separate export/print route which sets this to true via
-     * view()->with('isExport', true) — never toggle it inside this
-     * component.
-     */
-    public $isExport = false;
+    // NOTE: no `public $dataInputs;` anymore — it must NOT be a tracked
+    // public property. It's built fresh in render() and passed straight
+    // to the view instead, so Livewire never tries to serialize the
+    // paginator into the component snapshot.
 
     public $startDate, $endDate;
     public $servicesBys;
@@ -40,6 +35,7 @@ class Report extends Component
     public $pending_total = 0;
     public $totalCount = 0;
     public $cus_name_search;
+
     public function mount()
     {
         $this->startDate = now()->subDays(30)->format('Y-m-d');
@@ -49,11 +45,6 @@ class Report extends Component
         $this->boostTypes = BoostType::all();
     }
 
-    /**
-     * Single source of truth for the current filters.
-     * Reused for the on-screen page, the totals, and the export
-     * so all three always agree with each other.
-     */
     private function baseQuery()
     {
         return DataInput::query()
@@ -74,10 +65,6 @@ class Report extends Component
             });
     }
 
-    /**
-     * Compute Charge / Refund / Pending / Total in SQL instead of
-     * pulling every row into PHP and summing with Collection methods.
-     */
     private function updateAggregates(): void
     {
         $query = $this->baseQuery();
@@ -102,8 +89,6 @@ class Report extends Component
 
     public function updated($property)
     {
-        // Whenever a filter field changes, jump back to page 1
-        // so the paginator doesn't end up on an out-of-range page.
         if (in_array($property, ['cus_name_search', 'startDate', 'endDate', 'service_by', 'boosttype', 'status_at'])) {
             $this->resetPage();
         }
@@ -112,12 +97,9 @@ class Report extends Component
     public function reprotExcel()
     {
         try {
-            // Bounded memory limit instead of unlimited (-1), which can crash the server.
             ini_set('memory_limit', '1024M');
             set_time_limit(300);
 
-            // Fresh, FULL (non-paginated) collection for the export — the
-            // on-screen $dataInputs is paginated and must not be reused here.
             $exportData = $this->baseQuery()
                 ->with(['user', 'boostType'])
                 ->orderByDesc('start_date')
@@ -125,9 +107,6 @@ class Report extends Component
 
             $fileName = 'exports/cherry_lann_' . now()->format('Ymd_His') . '.xlsx';
 
-            // Store to disk instead of Excel::download(). This avoids Livewire
-            // base64-encoding the whole file into its AJAX response (which is
-            // what freezes the tab on large exports).
             Excel::store(
                 new DataExport($exportData, $this->charges, $this->refund, $this->pending_total),
                 $fileName,
@@ -145,11 +124,16 @@ class Report extends Component
     {
         $this->updateAggregates();
 
-        $this->dataInputs = $this->baseQuery()
+        $dataInputs = $this->baseQuery()
             ->with(['user', 'boostType'])
             ->orderByDesc('start_date')
             ->paginate(25);
 
-        return view('livewire.report');
+        // Passed locally via view() instead of a public property — this is
+        // what avoids the "Property type not supported" pagination error.
+        return view('livewire.report', [
+            'dataInputs' => $dataInputs,
+            'isExport'   => false,
+        ]);
     }
 }
