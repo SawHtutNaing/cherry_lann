@@ -6,8 +6,11 @@
         <div class="p-6 mx-auto bg-white rounded-lg shadow-lg ">
 
             <button wire:click='reprotExcel'
-                class="inline-flex items-center justify-center px-4 py-2 text-white bg-green-700 rounded shadow hover:bg-green-800">
-                Excel
+                wire:loading.attr="disabled"
+                wire:target="reprotExcel"
+                class="inline-flex items-center justify-center px-4 py-2 text-white bg-green-700 rounded shadow hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span wire:loading.remove wire:target="reprotExcel">Excel</span>
+                <span wire:loading wire:target="reprotExcel">Exporting… please wait</span>
             </button>
 
             <div class="flex flex-col justify-start mt-6 space-y-6 md:flex-row md:space-y-0 md:space-x-6">
@@ -89,7 +92,9 @@
         </thead>
         <tbody>
             <tr class="border-b">
-                <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInputs->count() }}</td>
+                {{-- $totalCount only exists on the live (paginated) page; on export
+                     $dataInputs is a plain collection so we fall back to ->count() --}}
+                <td class="px-6 py-4 text-sm text-gray-800">{{ $isExport ? $dataInputs->count() : $totalCount }}</td>
                 <td class="px-6 py-4 text-sm text-gray-800">{{ $charges }}</td>
                 <td class="px-6 py-4 text-sm text-gray-800">{{ $refund }}</td>
                 <td class="px-6 py-4 text-sm text-gray-800">{{ $charges - $refund }}</td>
@@ -98,7 +103,7 @@
         </tbody>
     </table>
 
-    <div class="mt-6 overflow-x-auto">
+    <div class="mt-6 overflow-x-auto" wire:loading.class="opacity-50" wire:target="filterData,reprotExcel,previousPage,nextPage,gotoPage">
         <table class="min-w-full bg-white border border-gray-200">
             <thead>
                 <tr class="w-full bg-gray-100 border-b">
@@ -127,7 +132,11 @@
             <tbody>
                 @foreach ($dataInputs as $dataInput)
                     <tr class="border-b">
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $loop->iteration }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-800">
+                            {{-- On the live page, numbering continues across pages.
+                                 On export, $dataInputs is a plain collection (no pagination). --}}
+                            {{ $isExport ? $loop->iteration : (($dataInputs->currentPage() - 1) * $dataInputs->perPage() + $loop->iteration) }}
+                        </td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->page_name }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->customer_name }}</td>
                         <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->user->name }}</td>
@@ -178,6 +187,14 @@
             </tbody>
         </table>
     </div>
+
+    @if (!$isExport)
+        {{-- Real pagination instead of dumping every row into the DOM at once --}}
+        <div class="mt-4">
+            {{ $dataInputs->links() }}
+        </div>
+    @endif
+
     @if (!$isExport)
 
     {{-- Image Preview Modal --}}
@@ -207,6 +224,17 @@
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeReportImageModal();
+        });
+
+
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('excel-ready', ({ url }) => {
+                window.location.href = url;
+            });
+
+            Livewire.on('excel-error', ({ message }) => {
+                alert(message);
+            });
         });
     </script>
     @endif
