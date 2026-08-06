@@ -10,9 +10,6 @@ use App\Livewire\Report;
 use App\Livewire\UserForm;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
@@ -50,3 +47,47 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
+
+
+use App\Http\Controllers\CmsImageUploadController;
+use App\Livewire\ImageManagement;
+use App\Livewire\CategoryManagement;
+
+Route::middleware(['auth'])->group(function () {
+
+    // Categories
+    Route::get('/categories', CategoryManagement::class)->name('categories.index');
+
+    // CMS Images
+    Route::get('/cms-images', ImageManagement::class)->name('cms-images.index');
+
+    Route::post('/cms-images/upload', [CmsImageUploadController::class, 'upload'])
+        ->name('cms-images.upload');
+
+    Route::post('/cms-images/delete-file', [CmsImageUploadController::class, 'delete'])
+        ->name('cms-images.delete-file');
+
+});
+
+
+
+
+use App\Livewire\SiteSettingManagement;
+
+Route::middleware(['auth'])->group(function () {
+    // ...existing routes
+    Route::get('/settings', SiteSettingManagement::class)->name('settings.index');
+});
+
+
+// routes/web.php
+Route::get('/', function () {
+    $categories = \App\Models\Category::query()
+        ->with(['images' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
+        ->orderBy('sort_order')
+        ->get();
+
+    $settings = \App\Models\SiteSetting::current();
+
+    return view('welcome', compact('categories', 'settings'));
+});

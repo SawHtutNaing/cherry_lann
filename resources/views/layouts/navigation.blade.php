@@ -36,6 +36,24 @@
 
 
 
+
+                        <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.index')">
+                            {{ __('Category Management') }}
+                        </x-nav-link>
+
+
+                        <x-nav-link :href="route('cms-images.index')" :active="request()->routeIs('cms-images.index')">
+                            {{ __('CMS Image') }}
+                        </x-nav-link>
+
+                        @if(auth()->user()->role == 'admin')
+                        <x-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.index')">
+                            {{ __('Site Settings') }}
+                        </x-nav-link>
+                        @endif
+
+
+
                     {{-- @endif --}}
 
 
@@ -91,6 +109,13 @@
                         <x-dropdown-link  :href="route('boost_types')" :active="request()->routeIs('boost_types')">
                             {{ __('Service Type Management') }}
                         </x-dropdown-link >
+
+                        @if(auth()->user()->role == 'admin')
+                        <x-dropdown-link :href="route('settings.index')" :active="request()->routeIs('settings.index')">
+                            {{ __('Site Settings') }}
+                        </x-dropdown-link>
+                        @endif
+
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
@@ -165,6 +190,12 @@
                 <x-responsive-nav-link  :href="route('boost_types')" :active="request()->routeIs('boost_types')">
                     {{ __('Service Type Management') }}
                 </x-responsive-nav-link >
+
+                @if(auth()->user()->role == 'admin')
+                <x-responsive-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.index')">
+                    {{ __('Site Settings') }}
+                </x-responsive-nav-link>
+                @endif
 
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
