@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -222,45 +223,21 @@ border: none;
                     <th class=" no_bg">Total</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td class="service-table">1</td>
-                    <td class="service-table">{{ $boost_type_id }}</td>
-                    <td class="service-table">{{ number_format($mm_kyat, 2) }}</td>
-                    <td class="service-table">
-                          @if(Str::contains($boost_type_id, 'Boosting'))
-                        $
-            @endif
-                        {{ number_format($amount, 2) }}</td>
-                      <td style="text-align: right;">{{ number_format($mm_kyat * $amount, 2) }}</td>
-                </tr>
-
-               <tr>
-    <td colspan="3"></td>
-    <td style="text-align: right; font-weight: bold;">
-SUBTOTAL:
-    </td>
-    <td style="text-align: right; font-weight: bold;"> <span class="service-table"> {{ number_format($mm_kyat * $amount, 2) }} </span> </td>
-</tr>
-<tr>
-    <td colspan="3"></td>
-     <td style="text-align: right; font-weight: bold;">
-DISCOUNT:
-    </td>
-    <td style="text-align: right; font-weight: bold;"> <span class="service-table"> {{ number_format($discount, 2) }} </span> </td>
-</tr>
-
-<tr>
-    <td colspan="3"></td>
-     <td style="text-align: right; font-weight: bold;">
-TOTAL:
-    </td>
-    <td style="text-align: right; font-weight: bold;"> <span class="service-table"> {{ number_format($total_amount, 2) }} </span> </td>
-</tr>
-
-
-
-            </tbody>
+       <tbody>
+    @foreach ($items as $i => $item)
+        <tr>
+            <td class="service-table">{{ $i + 1 }}</td>
+            <td class="service-table">{{ $item['service'] }}</td>
+            <td class="service-table">{{ number_format($item['price'], 2) }}</td>
+            <td class="service-table">
+                @if(Str::contains($item['service'], 'Boosting'))
+                    $
+                @endif
+                {{ number_format($item['qty'], 2) }}
+            </td>
+            <td style="text-align: right;">{{ number_format($item['total'], 2) }}</td>
+        </tr>
+    @endforeach
         </table>
 
 

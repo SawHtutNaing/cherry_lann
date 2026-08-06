@@ -7,24 +7,21 @@ use App\BoostStatus;
 
 class DataInput extends Model
 {
-  protected $fillable = [
-    'page_name', 'customer_name', 'phone', 'boost_type_id', 'start_date',
-    'amount', 'status', 'user_id', 'mm_kyat', 'total_amount', 'discount',
-    'is_remark', 'remark', 'client_side_image', 'service_side_image'
-];
+    protected $fillable = [
+        'page_name', 'customer_name', 'phone', 'status', 'user_id',
+        'total_amount', 'is_remark', 'remark',
+        'client_side_image', 'service_side_image',
+    ];
+
     protected $casts = [
-        'status' => BoostStatus::class, // Automatically cast status as an enum
-        'start_date' => 'date', // Casts to Carbon instance
-        'amount' => 'decimal:2',
+        'status'       => BoostStatus::class,
         'total_amount' => 'decimal:2',
     ];
 
-
-    public function boostType()
+    public function items()
     {
-        return $this->belongsTo(BoostType::class);
+        return $this->hasMany(DataInputItem::class);
     }
-
 
     public function user()
     {

@@ -110,28 +110,30 @@
                     </span>
                 </div>
 
-                {{-- Info --}}
-                <div class="px-4 pt-3 pb-1">
-                    <dl class="grid grid-cols-2 gap-x-4 gap-y-1">
-                        @php $infoRows = [
-                            'Phone'    => $dataInput->phone ?? 'N/A',
-                            'Service'  => $dataInput->boostType->name ?? 'N/A',
-                            'Date'     => $dataInput->start_date ? \Carbon\Carbon::parse($dataInput->start_date)->format('d/m/y') : 'N/A',
-                            'Qty'      => $dataInput->amount ?? 'N/A',
-                            'Amount'   => number_format($dataInput->mm_kyat),
-                            'Discount' => number_format($dataInput->discount),
-                            'Total'    => number_format($dataInput->total_amount),
-                        ]; @endphp
-                        @foreach($infoRows as $label => $value)
-                            <dt class="text-xs text-gray-400 font-medium">{{ $label }}</dt>
-                            <dd class="text-xs text-gray-700 font-semibold">{{ $value }}</dd>
-                        @endforeach
-                        @if($dataInput->is_remark)
-                            <dt class="text-xs text-gray-400 font-medium">Remark</dt>
-                            <dd class="text-xs text-green-600 font-bold">✓ Yes</dd>
-                        @endif
-                    </dl>
+                {{-- Line Items --}}
+             {{-- Items summary --}}
+<td class="px-4 py-3">
+    <div class="rounded-md border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+        @forelse ($dataInput->items as $item)
+            <div class="px-2.5 py-1.5 bg-white text-[11px] leading-tight">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="font-semibold text-gray-800 truncate">{{ $item->boostType->name ?? 'N/A' }}</span>
+                    <span class="text-gray-400 shrink-0 tabular-nums">{{ $item->start_date ? \Carbon\Carbon::parse($item->start_date)->format('d/m/y') : 'N/A' }}</span>
                 </div>
+                <div class="flex items-center gap-2 text-gray-500 mt-0.5">
+                    <span>Qty {{ $item->amount }}</span>
+                    <span>·</span>
+                    <span>{{ number_format($item->mm_kyat) }}</span>
+                    <span>·</span>
+                    <span>-{{ number_format($item->discount) }}</span>
+                    <span class="ml-auto font-semibold text-gray-800">{{ number_format($item->line_total) }}</span>
+                </div>
+            </div>
+        @empty
+            <div class="px-2.5 py-2 text-xs text-gray-400 text-center">No items</div>
+        @endforelse
+    </div>
+</td>
 
                 {{-- Image Upload --}}
                 <div class="px-4 py-3 grid grid-cols-2 gap-2">
@@ -230,11 +232,7 @@
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[140px]">Customer</th>
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[140px]">Page Name</th>
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[110px]">Phone</th>
-                    <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[110px]">Service</th>
-                    <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[90px]">Date</th>
-                    <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[70px]">Qty</th>
-                    <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[90px]">Amount</th>
-                    <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[90px]">Discount</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[220px]">Items</th>
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[110px]">Total</th>
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[90px]">Status</th>
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[130px]">Client Img</th>
@@ -286,11 +284,22 @@
                         <td class="px-4 py-3 text-sm font-medium text-gray-800">{{ $dataInput->customer_name ?? 'N/A' }}</td>
                         <td class="px-4 py-3 text-sm text-gray-600">{{ $dataInput->page_name ?? 'N/A' }}</td>
                         <td class="px-4 py-3 text-sm text-gray-600">{{ $dataInput->phone ?? 'N/A' }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-600">{{ $dataInput->boostType->name ?? 'N/A' }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-600">{{ $dataInput->start_date ? \Carbon\Carbon::parse($dataInput->start_date)->format('d/m/y') : 'N/A' }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-600">{{ $dataInput->amount ?? 'N/A' }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-600">{{ number_format($dataInput->mm_kyat) }}</td>
-                        <td class="px-4 py-3 text-sm text-gray-600">{{ number_format($dataInput->discount) }}</td>
+
+                        {{-- Items summary --}}
+                        <td class="px-4 py-3 text-xs text-gray-600 whitespace-normal">
+                            @forelse ($dataInput->items as $item)
+                                <div class="mb-1 last:mb-0 leading-tight">
+                                    <span class="font-semibold text-gray-800">{{ $item->boostType->name ?? 'N/A' }}</span>
+                                    — {{ $item->start_date ? \Carbon\Carbon::parse($item->start_date)->format('d/m/y') : 'N/A' }},
+                                    Qty {{ $item->amount }}, Amt {{ number_format($item->mm_kyat) }},
+                                    Disc {{ number_format($item->discount) }},
+                                    <span class="font-semibold">Ln {{ number_format($item->line_total) }}</span>
+                                </div>
+                            @empty
+                                <span class="text-gray-400">No items</span>
+                            @endforelse
+                        </td>
+
                         <td class="px-4 py-3 text-sm font-semibold text-gray-800">{{ number_format($dataInput->total_amount) }}</td>
                         <td class="px-4 py-3">
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
@@ -366,7 +375,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="18" class="text-center text-gray-400 py-16">
+                        <td colspan="14" class="text-center text-gray-400 py-16">
                             <svg class="w-10 h-10 mx-auto mb-2 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                             <p class="text-sm font-medium">No records found</p>
                         </td>

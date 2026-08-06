@@ -25,20 +25,70 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
         $this->pending_total = $pending_total;
     }
 
+    /**
+     * Flatten each DataInput + its items into one row per item.
+     * Requires $dataInputs to have been loaded with ['user', 'items.boostType'].
+     */
+    private function flattenRows()
+    {
+        $rows = collect();
+
+        foreach ($this->dataInputs as $dataInput) {
+            $items = $dataInput->items;
+
+            if ($items->isEmpty()) {
+                // Still emit one row so the record isn't silently dropped from the export
+                $rows->push([
+                    'page_name'     => $dataInput->page_name,
+                    'customer_name' => $dataInput->customer_name,
+                    'serviced_by'   => $dataInput->user->name ?? 'N/A',
+                    'service_type'  => 'N/A',
+                    'start_date'    => 'N/A',
+                    'quantity'      => 0,
+                    'price'         => 0,
+                    'discount'      => 0,
+                    'line_total'    => 0,
+                    'record_total'  => number_format($dataInput->total_amount, 2),
+                    'status'        => $dataInput->status->label(),
+                    'remark'        => $dataInput->remark,
+                ]);
+                continue;
+            }
+
+            foreach ($items as $item) {
+                $rows->push([
+                    'page_name'     => $dataInput->page_name,
+                    'customer_name' => $dataInput->customer_name,
+                    'serviced_by'   => $dataInput->user->name ?? 'N/A',
+                    'service_type'  => $item->boostType->name ?? 'N/A',
+                    'start_date'    => $item->start_date
+                        ? \Carbon\Carbon::parse($item->start_date)->format('Y-m-d')
+                        : 'N/A',
+                    'quantity'      => $item->amount,
+                    'price'         => number_format($item->mm_kyat, 2),
+                    'discount'      => number_format($item->discount, 2),
+                    'line_total'    => number_format($item->line_total, 2),
+                    'record_total'  => number_format($dataInput->total_amount, 2),
+                    'status'        => $dataInput->status->label(),
+                    'remark'        => $dataInput->remark,
+                ]);
+            }
+        }
+
+        return $rows;
+    }
+
     public function styles(Worksheet $sheet)
     {
-        // Get the last row of the first table dynamically
-        $firstTableLastRow = count($this->dataInputs) + 1; // Assuming header is in row 1
-
-        // Apply header styling to ONLY the first table's thead
-        $sheet->getStyle("A1:H1")->applyFromArray([
+        // First (summary) table header — row 1
+        $sheet->getStyle("A1:E1")->applyFromArray([
             'font' => [
                 'bold' => true,
-                'size' => 10, // Font size for headers
+                'size' => 10,
             ],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'FFFF00'], // Yellow background
+                'startColor' => ['rgb' => 'FFFF00'],
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
@@ -46,18 +96,16 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
             ],
         ]);
 
-        // Get the start row of the second table dynamically
-        $secondTableStartRow = 4; // Add some spacing
-
-        // Apply header styling ONLY to the second table's thead
-        $sheet->getStyle("A{$secondTableStartRow}:K{$secondTableStartRow}")->applyFromArray([
+        // Second (detail) table header — row 4
+        $secondTableStartRow = 4;
+        $sheet->getStyle("A{$secondTableStartRow}:M{$secondTableStartRow}")->applyFromArray([
             'font' => [
                 'bold' => true,
-                'size' => 10, // Font size for headers
+                'size' => 10,
             ],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'FFFF00'], // Yellow background
+                'startColor' => ['rgb' => 'FFFF00'],
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
@@ -71,19 +119,23 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
     public function columnFormats(): array
     {
         return [
-            'E' => NumberFormat::FORMAT_DATE_YYYYMMDD, // Start Date format
-            'F' => NumberFormat::FORMAT_NUMBER_00, // Amount format (2 decimal places)
+            // Detail table columns: A No, B Page, C Cus, D ServicedBy, E ServiceType,
+            // F StartDate, G Qty, H Price, I Discount, J LineTotal, K RecordTotal, L Status, M Remark
+            'F' => NumberFormat::FORMAT_DATE_YYYYMMDD,
+            'H' => NumberFormat::FORMAT_NUMBER_00,
+            'I' => NumberFormat::FORMAT_NUMBER_00,
+            'J' => NumberFormat::FORMAT_NUMBER_00,
+            'K' => NumberFormat::FORMAT_NUMBER_00,
         ];
     }
 
     public function view(): View
     {
-        return view('livewire.report', [
-            'dataInputs' => $this->dataInputs,
-            'isExport' => true,
-            'charges' => $this->charges,
-            'refund' => $this->refund,
-            'pending_total' => $this->pending_total
+        return view('exports.data-input-report', [
+            'rows'          => $this->flattenRows(),
+            'charges'       => $this->charges,
+            'refund'        => $this->refund,
+            'pending_total' => $this->pending_total,
         ]);
     }
 }

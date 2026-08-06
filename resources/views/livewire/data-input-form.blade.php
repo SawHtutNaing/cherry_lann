@@ -1,6 +1,7 @@
-<div class="max-w-md p-6 mx-auto mt-8 bg-white rounded-md shadow-md">
+<div class="max-w-2xl p-6 mx-auto mt-8 bg-white rounded-md shadow-md">
     <h1 class="mb-6 text-2xl font-semibold">{{ $dataInputId ? 'Edit Data Input' : 'Create Data Input' }}</h1>
     <form wire:submit.prevent="save">
+
         <!-- Customer Name -->
         <div class="mb-4">
             <label class="block text-gray-700">Customer Name:</label>
@@ -31,101 +32,126 @@
             @enderror
         </div>
 
-        <!-- Boost Type -->
-        <div class="mb-4">
-            <label class="block text-gray-700">Service Type:</label>
-            <select wire:model.debounce.300ms="boost_type_id" name="boost_type_id"
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Select</option>
-                @foreach ($boostTypes as $boostType)
-                    <option value="{{ $boostType->id }}">{{ $boostType->name }}</option>
-                @endforeach
-            </select>
-            @error('boost_type_id')
-                <span class="text-red-500">{{ $message }}</span>
-            @enderror
-        </div>
+        <!-- ═══════════════ Line Items ═══════════════ -->
+        <h2 class="mt-6 mb-2 text-lg font-semibold text-gray-800">Service Items</h2>
 
-        <!-- Start Date -->
-        <div class="mb-4">
-            <label class="block text-gray-700">Start Date:</label>
-            <input type="date" wire:model.debounce.300ms="start_date"
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            @error('start_date')
-                <span class="text-red-500">{{ $message }}</span>
-            @enderror
-        </div>
+        @foreach ($items as $index => $item)
+            <div class="mb-4 p-4 border border-gray-200 rounded-md bg-gray-50" wire:key="item-{{ $index }}">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="font-semibold text-gray-600">Item #{{ $index + 1 }}</span>
+                    @if (count($items) > 1)
+                        <button type="button" wire:click="removeItem({{ $index }})"
+                            class="text-sm font-medium text-red-500 hover:text-red-700 hover:underline">
+                            Remove
+                        </button>
+                    @endif
+                </div>
 
-        <!-- Amount -->
-        <div class="mb-4">
-            <label class="block text-gray-700">Quantity</label>
-            <input type="number" step="0.01" wire:model.debounce.300ms="amount" id="amount"
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            @error('amount')
-                <span class="text-red-500">{{ $message }}</span>
-            @enderror
-        </div>
+                <!-- Boost Type -->
+                <div class="mb-3">
+                    <label class="block text-gray-700">Service Type:</label>
+                    <select wire:model="items.{{ $index }}.boost_type_id"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select</option>
+                        @foreach ($boostTypes as $boostType)
+                            <option value="{{ $boostType->id }}">{{ $boostType->name }}</option>
+                        @endforeach
+                    </select>
+                    @error("items.$index.boost_type_id")
+                        <span class="text-red-500">{{ $message }}</span>
+                    @enderror
+                </div>
 
-        <!-- MM Kyat -->
-        <div class="mb-4">
-            <label class="block text-gray-700">Amount</label>
-            <input type="number" step="0.01" wire:model.debounce.300ms="mm_kyat" id="mm_kyat"
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            @error('mm_kyat')
-                <span class="text-red-500">{{ $message }}</span>
-            @enderror
-        </div>
+                <!-- Start Date -->
+                <div class="mb-3">
+                    <label class="block text-gray-700">Start Date:</label>
+                    <input type="date" wire:model="items.{{ $index }}.start_date"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @error("items.$index.start_date")
+                        <span class="text-red-500">{{ $message }}</span>
+                    @enderror
+                </div>
 
+                <div class="grid grid-cols-3 gap-3">
+                    <!-- Amount (Qty) -->
+                    <div>
+                        <label class="block text-gray-700">Quantity</label>
+                        <input type="number" step="0.01"
+                            wire:model.live.debounce.300ms="items.{{ $index }}.amount"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        @error("items.$index.amount")
+                            <span class="text-red-500">{{ $message }}</span>
+                        @enderror
+                    </div>
 
+                    <!-- MM Kyat -->
+                    <div>
+                        <label class="block text-gray-700">Amount</label>
+                        <input type="number" step="0.01"
+                            wire:model.live.debounce.300ms="items.{{ $index }}.mm_kyat"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        @error("items.$index.mm_kyat")
+                            <span class="text-red-500">{{ $message }}</span>
+                        @enderror
+                    </div>
 
-        <!-- Discount -->
-        <div class="mb-4">
-            <label class="block text-gray-700">Discount</label>
-            <input type="number" step="0.01" wire:model.debounce.300ms="discount" id="discount"
-                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            @error('discount')
-                <span class="text-red-500">{{ $message }}</span>
-            @enderror
-        </div>
+                    <!-- Discount -->
+                    <div>
+                        <label class="block text-gray-700">Discount</label>
+                        <input type="number" step="0.01"
+                            wire:model.live.debounce.300ms="items.{{ $index }}.discount"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        @error("items.$index.discount")
+                            <span class="text-red-500">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                <p class="mt-3 text-sm font-semibold text-right text-gray-700">
+                    Line Total: {{ number_format($item['line_total'], 2) }}
+                </p>
+            </div>
+        @endforeach
+
+        <button type="button" wire:click="addItem"
+            class="mb-6 px-4 py-2 text-sm font-medium text-blue-600 border border-blue-500 rounded-md hover:bg-blue-50">
+            + Add Item
+        </button>
 
         <!-- Total Amount -->
         <div class="mb-4">
             <label class="block text-gray-700">Total Amount:</label>
             <div class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100">
-                <span id="total-amount">{{ number_format($total_amount, 2) }}</span>
+                <span>{{ number_format($total_amount, 2) }}</span>
             </div>
             @error('total_amount')
                 <span class="text-red-500">{{ $message }}</span>
             @enderror
         </div>
 
+        <!-- Remark toggle -->
         <div class="mb-4">
             <label class="block text-gray-700">Remark </label>
-            <div class="w-full px-4 py-2  border-gray-300  ">
-                <input type="checkbox"
-            @checked($is_remark)
-
-                wire:model.live='is_remark' >
+            <div class="w-full px-4 py-2 border-gray-300">
+                <input type="checkbox" @checked($is_remark) wire:model.live="is_remark">
             </div>
             @error('is_remark')
                 <span class="text-red-500">{{ $message }}</span>
             @enderror
         </div>
 
-
-      @if($is_remark)
-      <div class="mb-4" wire:transition>
-        <label class="block text-gray-700"> Remark Comment</label>
-        <div class="w-full px-4 py-2  border-gray-300  ">
-            <input type="text" wire:model='remark' class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-        @error('remark')
-            <span class="text-red-500">{{ $message }}</span>
-        @enderror
-    </div>
-      @endif
-
-
+        @if ($is_remark)
+            <div class="mb-4" wire:transition>
+                <label class="block text-gray-700">Remark Comment</label>
+                <div class="w-full px-4 py-2 border-gray-300">
+                    <input type="text" wire:model="remark"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                @error('remark')
+                    <span class="text-red-500">{{ $message }}</span>
+                @enderror
+            </div>
+        @endif
 
         <!-- Status -->
         <div class="mb-4">
@@ -152,39 +178,4 @@
             </button>
         </div>
     </form>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
-                console.log('JavaScript loaded'); // Debug log
-                const amountInput = document.getElementById('amount');
-                const mmKyatInput = document.getElementById('mm_kyat');
-                const discountInput = document.getElementById('discount');
-                const totalAmountSpan = document.getElementById('total-amount');
-
-                if (!amountInput || !mmKyatInput || !discountInput || !totalAmountSpan) {
-                    console.error('Input elements not found');
-                    return;
-                }
-
-                function updateTotalAmount() {
-                    const amount = parseFloat(amountInput.value) || 0;
-                    const mmKyat = parseFloat(mmKyatInput.value) || 0;
-                    const discount = parseFloat(discountInput.value) || 0;
-                    const total = (amount * mmKyat) - discount;
-                    totalAmountSpan.textContent = total.toFixed(2);
-                    console.log('Client-side total:', total); // Debug log
-                }
-
-                amountInput.addEventListener('input', updateTotalAmount);
-                mmKyatInput.addEventListener('input', updateTotalAmount);
-                discountInput.addEventListener('input', updateTotalAmount);
-
-                // Initial update
-                updateTotalAmount();
-            } catch (error) {
-                console.error('JavaScript error:', error);
-            }
-        });
-    </script>
 </div>

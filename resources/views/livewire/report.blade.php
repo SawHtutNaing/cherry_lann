@@ -103,90 +103,98 @@
         </tbody>
     </table>
 
-    <div class="mt-6 overflow-x-auto" wire:loading.class="opacity-50" wire:target="filterData,reprotExcel,previousPage,nextPage,gotoPage">
-        <table class="min-w-full bg-white border border-gray-200">
-            <thead>
-                <tr class="w-full bg-gray-100 border-b">
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">No</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Page Name</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Cus Name</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Serviced By</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Service Type</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Start Date</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Quantity</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Amount</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Discount</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total Amount</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Status</th>
-    @if ($isExport)
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Remark</th>
-
-    @endif
-    @if (!$isExport)
-
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Client Image</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Cherry Lann Image</th>
-                    @endif
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($dataInputs as $dataInput)
-                    <tr class="border-b">
-                        <td class="px-6 py-4 text-sm text-gray-800">
-                            {{-- On the live page, numbering continues across pages.
-                                 On export, $dataInputs is a plain collection (no pagination). --}}
-                            {{ $isExport ? $loop->iteration : (($dataInputs->currentPage() - 1) * $dataInputs->perPage() + $loop->iteration) }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->page_name }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->customer_name }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->user->name }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->boostType->name }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-800">
-                            {{ \Carbon\Carbon::parse($dataInput->start_date)->format('d/m/y') }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->amount }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->mm_kyat }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->discount }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->total_amount }}</td>
-                        <td class="px-6 py-4 text-sm {{ $dataInput->status->name == 'Charge' ? 'text-green-600' : 'text-red-600' }}">
-                            {{ $dataInput->status->label() }}
-                        </td>
-
-    @if ($isExport)
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->remark }}</td>
-
+<div class="mt-6 overflow-x-auto" wire:loading.class="opacity-50" wire:target="filterData,reprotExcel,previousPage,nextPage,gotoPage">
+    <table class="min-w-full bg-white border border-gray-200">
+        <thead>
+            <tr class="w-full bg-gray-100 border-b">
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">No</th>
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Page Name</th>
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Cus Name</th>
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Serviced By</th>
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 min-w-[280px]">Items</th>
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total Amount</th>
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Status</th>
+@if ($isExport)
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Remark</th>
 @endif
-    @if (!$isExport)
+@if (!$isExport)
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Client Image</th>
+                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Cherry Lann Image</th>
+@endif
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($dataInputs as $dataInput)
+                <tr class="border-b align-top">
+                    <td class="px-6 py-4 text-sm text-gray-800">
+                        {{ $isExport ? $loop->iteration : (($dataInputs->currentPage() - 1) * $dataInputs->perPage() + $loop->iteration) }}
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->page_name }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->customer_name }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->user->name ?? 'N/A' }}</td>
 
-                        {{-- Client Image (preview only) --}}
-                        <td class="px-6 py-4 text-sm text-gray-800">
-                            @if($dataInput->client_side_image)
-                                <img src="{{ Storage::disk('public')->url($dataInput->client_side_image) }}"
-                                     class="w-16 h-16 object-cover rounded cursor-pointer border border-gray-200 hover:opacity-80 transition"
-                                     onclick="openReportImageModal(this.src)"
-                                     title="Click to preview">
-                            @else
-                                <span class="text-xs text-gray-400 italic">No image</span>
-                            @endif
-                        </td>
+                    {{-- Items --}}
+                    <td class="px-6 py-4">
+                        <div class="rounded-md border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+                            @forelse ($dataInput->items as $item)
+                                <div class="px-3 py-2 bg-white text-xs leading-tight">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="font-semibold text-gray-800">{{ $item->boostType->name ?? 'N/A' }}</span>
+                                        <span class="text-gray-400 tabular-nums">
+                                            {{ $item->start_date ? \Carbon\Carbon::parse($item->start_date)->format('d/m/y') : 'N/A' }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-3 text-gray-500 mt-0.5">
+                                        <span>Qty {{ $item->amount }}</span>
+                                        <span>Price {{ number_format($item->mm_kyat) }}</span>
+                                        <span>Disc {{ number_format($item->discount) }}</span>
+                                        <span class="ml-auto font-semibold text-gray-800">{{ number_format($item->line_total) }}</span>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="px-3 py-2 text-xs text-gray-400 text-center">No items</div>
+                            @endforelse
+                        </div>
+                    </td>
 
-                        {{-- Cherry Lann / Service Image (preview only) --}}
-                        <td class="px-6 py-4 text-sm text-gray-800">
-                            @if($dataInput->service_side_image)
-                                <img src="{{ Storage::disk('public')->url($dataInput->service_side_image) }}"
-                                     class="w-16 h-16 object-cover rounded cursor-pointer border border-gray-200 hover:opacity-80 transition"
-                                     onclick="openReportImageModal(this.src)"
-                                     title="Click to preview">
-                            @else
-                                <span class="text-xs text-gray-400 italic">No image</span>
-                            @endif
-                        </td>
+                    <td class="px-6 py-4 text-sm font-semibold text-gray-800">{{ number_format($dataInput->total_amount) }}</td>
+                    <td class="px-6 py-4 text-sm {{ $dataInput->status->name == 'Charge' ? 'text-green-600' : 'text-red-600' }}">
+                        {{ $dataInput->status->label() }}
+                    </td>
+
+@if ($isExport)
+                    <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->remark }}</td>
+@endif
+@if (!$isExport)
+                    {{-- Client Image --}}
+                    <td class="px-6 py-4 text-sm text-gray-800">
+                        @if($dataInput->client_side_image)
+                            <img src="{{ Storage::disk('public')->url($dataInput->client_side_image) }}"
+                                 class="w-16 h-16 object-cover rounded cursor-pointer border border-gray-200 hover:opacity-80 transition"
+                                 onclick="openReportImageModal(this.src)"
+                                 title="Click to preview">
+                        @else
+                            <span class="text-xs text-gray-400 italic">No image</span>
                         @endif
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+                    </td>
+
+                    {{-- Cherry Lann / Service Image --}}
+                    <td class="px-6 py-4 text-sm text-gray-800">
+                        @if($dataInput->service_side_image)
+                            <img src="{{ Storage::disk('public')->url($dataInput->service_side_image) }}"
+                                 class="w-16 h-16 object-cover rounded cursor-pointer border border-gray-200 hover:opacity-80 transition"
+                                 onclick="openReportImageModal(this.src)"
+                                 title="Click to preview">
+                        @else
+                            <span class="text-xs text-gray-400 italic">No image</span>
+                        @endif
+                    </td>
+@endif
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
 
     @if (!$isExport)
         {{-- Real pagination instead of dumping every row into the DOM at once --}}

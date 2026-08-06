@@ -18,11 +18,6 @@ class Report extends Component
 
     protected $paginationTheme = 'tailwind';
 
-    // NOTE: no `public $dataInputs;` anymore — it must NOT be a tracked
-    // public property. It's built fresh in render() and passed straight
-    // to the view instead, so Livewire never tries to serialize the
-    // paginator into the component snapshot.
-
     public $startDate, $endDate;
     public $servicesBys;
     public $boostTypes;
@@ -48,14 +43,20 @@ class Report extends Component
     private function baseQuery()
     {
         return DataInput::query()
+            // start_date now lives on the items table, so filter through the relation
             ->when($this->startDate && $this->endDate, function ($q) {
-                $q->whereBetween('start_date', [$this->startDate, $this->endDate]);
+                $q->whereHas('items', function ($iq) {
+                    $iq->whereBetween('start_date', [$this->startDate, $this->endDate]);
+                });
             })
             ->when($this->service_by, function ($q) {
                 $q->where('user_id', $this->service_by);
             })
+            // boost_type_id now lives on the items table too
             ->when(!empty($this->boosttype), function ($q) {
-                $q->whereIn('boost_type_id', $this->boosttype);
+                $q->whereHas('items', function ($iq) {
+                    $iq->whereIn('boost_type_id', $this->boosttype);
+                });
             })
             ->when($this->cus_name_search, function ($q) {
                 $q->where('customer_name', 'like', '%' . $this->cus_name_search . '%');
@@ -71,10 +72,12 @@ class Report extends Component
 
         $this->totalCount = (clone $query)->count();
 
+        // total_amount is the header-level rollup of all items, so we
+        // aggregate on it directly instead of the old per-line `amount` column
         $agg = (clone $query)->selectRaw('
-            COALESCE(SUM(CASE WHEN status = 1 THEN amount END), 0) as charges,
-            COALESCE(SUM(CASE WHEN status = 2 THEN amount END), 0) as refund,
-            COALESCE(SUM(CASE WHEN status = 3 THEN amount END), 0) as pending
+            COALESCE(SUM(CASE WHEN status = 1 THEN total_amount END), 0) as charges,
+            COALESCE(SUM(CASE WHEN status = 2 THEN total_amount END), 0) as refund,
+            COALESCE(SUM(CASE WHEN status = 3 THEN total_amount END), 0) as pending
         ')->first();
 
         $this->charges = (float) $agg->charges;
@@ -101,8 +104,8 @@ class Report extends Component
             set_time_limit(300);
 
             $exportData = $this->baseQuery()
-                ->with(['user', 'boostType'])
-                ->orderByDesc('start_date')
+                ->with(['user', 'items.boostType'])
+                ->orderByDesc('created_at')
                 ->get();
 
             $fileName = 'exports/cherry_lann_' . now()->format('Ymd_His') . '.xlsx';
@@ -125,12 +128,10 @@ class Report extends Component
         $this->updateAggregates();
 
         $dataInputs = $this->baseQuery()
-            ->with(['user', 'boostType'])
-            ->orderByDesc('start_date')
+            ->with(['user', 'items.boostType'])
+            ->orderByDesc('created_at')
             ->paginate(25);
 
-        // Passed locally via view() instead of a public property — this is
-        // what avoids the "Property type not supported" pagination error.
         return view('livewire.report', [
             'dataInputs' => $dataInputs,
             'isExport'   => false,
