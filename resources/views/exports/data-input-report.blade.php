@@ -4,8 +4,9 @@
         <th>No</th>
         <th>Charge</th>
         <th>Refund</th>
-        <th>Total</th>
+        <th>Net Total</th>
         <th>Pending</th>
+        <th>Overall Total</th>
     </tr>
     <tr>
         <td>{{ $rows->count() }}</td>
@@ -13,6 +14,7 @@
         <td>{{ $refund }}</td>
         <td>{{ $charges - $refund }}</td>
         <td>{{ $pending_total }}</td>
+        <td>{{ number_format($overall_total, 2) }}</td>
     </tr>
 
     <tr><td></td></tr>
@@ -50,4 +52,11 @@
             <td>{{ $row['remark'] }}</td>
         </tr>
     @endforeach
+
+    {{-- Grand total row --}}
+    <tr>
+        <td colspan="9" style="text-align:right;"><strong>GRAND TOTAL</strong></td>
+        <td><strong>{{ number_format($overall_total, 2) }}</strong></td>
+        <td colspan="2"></td>
+    </tr>
 </table>

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,7 +6,6 @@
     <title>Export Voucher</title>
     <style>
         body {
-
             font-family: myanmar, sans-serif;
             margin: 0;
             padding: 0;
@@ -30,64 +28,43 @@
             font-size: 14px;
             color: #333;
         }
-
         .header-table  {
             margin-left: 2rem;
         }
-
         .header-table td {
             border: none;
             vertical-align: top;
-
         }
         .logo {
             max-width: 100px;
             height: auto;
         }
-
-             .logo_sm {
+        .logo_sm {
             width: 50px;
             height: 50px;
         }
-
-
         .title {
             text-align: center;
             color: #0046ad;
         }
         .bold{
             font-weight: bold;
-
         }
-
         .payment_table{
-            /* Remove all borders except bottom */
-border: none;
-
-/* Add thick bottom border with dark gray color */
-border-bottom: 3px solid #888888;
+            border: none;
+            border-bottom: 3px solid #888888;
         }
-
-
-
         .payment_table tr  td{
-            /* Remove all borders except bottom */
-border: none;
-
-
+            border: none;
         }
-
         .bolder{
             font-weight: 900;
             font-family: mm_bold , sans-serif;;
-
-
         }
-
         .cus_info{
             font-weight: 900;
         }
-            .cus_info *{
+        .cus_info *{
             font-weight: 900;
         }
         .title h1 {
@@ -96,7 +73,6 @@ border: none;
             font-weight: bold;
         }
         .title p {
-            /* font-size: 14px; */
             margin: 5px 0;
             text-align:center;
         }
@@ -123,23 +99,17 @@ border: none;
         .service-table  {
             text-align: center;
         }
-
         .no_bg{
             background-color: #F0F0F0;
-
-
             font-weight: bold;
             text-align: center;
-
         }
         .totals td {
             text-align: right;
         }
         .right{
             text-align: left !important;
-
         }
-
         .totals .label {
             font-weight: bold;
         }
@@ -147,13 +117,11 @@ border: none;
             font-weight: bold;
         }
         .footer td {
-      border: none;
-
+            border: none;
             font-size: 14px;
-            /* color: #333; */
         }
         .founder{
-                border: none;
+            border: none;
             font-size: 14px;
             color: #333;
             text-align: right;
@@ -163,36 +131,32 @@ border: none;
             font-style: italic;
             text-align: right;
         }
-
         .thank-you_one{
             text-align: right;
-
         }
     </style>
 </head>
 <body>
     <div class="voucher">
-      <!-- Header -->
-<table class="header-table">
-    <tr>
-        <td style="width: 10%; vertical-align: middle; text-align: center;">
-            <img src="{{ $logo_base64 }}" alt="Cherry Lann Logo" class="logo">
-        </td>
-        <td style="width: 60%; vertical-align: middle; text-align: center;">
-            <div class="title">
-                <p style="font-size: 17px; margin: 0; font-weight: 900; text-align: end " class="bolder">CHERRY LANN - DIGITAL MARKETING</p>
-
-            </div>
-        </td>
-        <td style="width: 30%; vertical-align: middle;">
-            <div style="display: flex; flex-direction: column; justify-content: center; align-items: end; text-align: end; height: 100%;">
-                <p style="margin: 5px 0;">INVOICE NUMBER: {{ $id }}</p>
-                <p style="margin: 5px 0;">DATE: {{ $generated_date }}</p>
-            </div>
-        </td>
-    </tr>
-</table>
-
+        <!-- Header -->
+        <table class="header-table">
+            <tr>
+                <td style="width: 10%; vertical-align: middle; text-align: center;">
+                    <img src="{{ $logo_base64 }}" alt="Cherry Lann Logo" class="logo">
+                </td>
+                <td style="width: 60%; vertical-align: middle; text-align: center;">
+                    <div class="title">
+                        <p style="font-size: 17px; margin: 0; font-weight: 900; text-align: end " class="bolder">CHERRY LANN - DIGITAL MARKETING</p>
+                    </div>
+                </td>
+                <td style="width: 30%; vertical-align: middle;">
+                    <div style="display: flex; flex-direction: column; justify-content: center; align-items: end; text-align: end; height: 100%;">
+                        <p style="margin: 5px 0;">INVOICE NUMBER: {{ $id }}</p>
+                        <p style="margin: 5px 0;">DATE: {{ $generated_date }}</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
 
         <!-- Customer Information -->
         <table class='bold'>
@@ -201,57 +165,70 @@ border: none;
             </tr>
             <tr>
                 <td style="width: 33%;" class='bold'>
-                    <strong class='bold' >Customer Name:</strong><br><span class='bold'>{{ $customer_name }}</span>
+                    <strong class='bold'>Customer Name:</strong><br><span class='bold'>{{ $customer_name }}</span>
                 </td>
                 <td style="width: 33%;" class='bold'>
-                    <strong class='bold' >Page Name:</strong><br><span class='bold'>{{ $page_name }}</span>
+                    <strong class='bold'>Page Name:</strong><br><span class='bold'>{{ $page_name }}</span>
                 </td>
                 <td style="width: 33%;" class='bold'>
-                    <strong class='bold' >Phone Number:</strong><br><span class='bold'>{{ $phone }}</span>
+                    <strong class='bold'>Phone Number:</strong><br><span class='bold'>{{ $phone }}</span>
                 </td>
             </tr>
         </table>
 
         <!-- Service Table -->
-        <table >
+        <table>
             <thead>
                 <tr>
-                    <th class=" no_bg ">No.</th>
-                    <th class=" no_bg">Service Type</th>
-                    <th class=" no_bg">Price</th>
-                    <th class=" no_bg">Qty</th>
-                    <th class=" no_bg">Total</th>
+                    <th class="no_bg">No.</th>
+                    <th class="no_bg">Service Type</th>
+                    <th class="no_bg">Price</th>
+                    <th class="no_bg">Qty</th>
+                    <th class="no_bg">Total</th>
                 </tr>
             </thead>
-       <tbody>
-    @foreach ($items as $i => $item)
-        <tr>
-            <td class="service-table">{{ $i + 1 }}</td>
-            <td class="service-table">{{ $item['service'] }}</td>
-            <td class="service-table">{{ number_format($item['price'], 2) }}</td>
-            <td class="service-table">
-                @if(Str::contains($item['service'], 'Boosting'))
-                    $
-                @endif
-                {{ number_format($item['qty'], 2) }}
-            </td>
-            <td style="text-align: right;">{{ number_format($item['total'], 2) }}</td>
-        </tr>
-    @endforeach
+            <tbody>
+                @foreach ($items as $i => $item)
+                    <tr>
+                        <td class="service-table">{{ $i + 1 }}</td>
+                        <td class="service-table">{{ $item['service'] }}</td>
+                        <td class="service-table">{{ number_format($item['price'], 2) }}</td>
+                        <td class="service-table">
+                            @if(Str::contains($item['service'], 'Boosting'))
+                                $
+                            @endif
+                            {{ number_format($item['qty'], 2) }}
+                        </td>
+                        <td style="text-align: right;">{{ number_format($item['total'], 2) }}</td>
+                    </tr>
+                @endforeach
+
+                <tr>
+                    <td colspan="3"></td>
+                    <td style="text-align: right; font-weight: bold;">SUBTOTAL:</td>
+                    <td style="text-align: right; font-weight: bold;"><span class="service-table">{{ number_format($subtotal, 2) }}</span></td>
+                </tr>
+                <tr>
+                    <td colspan="3"></td>
+                    <td style="text-align: right; font-weight: bold;">DISCOUNT:</td>
+                    <td style="text-align: right; font-weight: bold;"><span class="service-table">{{ number_format($discount, 2) }}</span></td>
+                </tr>
+                <tr>
+                    <td colspan="3"></td>
+                    <td style="text-align: right; font-weight: bold;">TOTAL:</td>
+                    <td style="text-align: right; font-weight: bold;"><span class="service-table">{{ number_format($total_amount, 2) }}</span></td>
+                </tr>
+            </tbody>
         </table>
-
-
-
 
         <!-- Payment Methods -->
         <table class="payment_table">
             <tr>
-                <td  colspan="2" style="text-align: left;" class="section-title no_bg">Payment Methods</td>
+                <td colspan="2" style="text-align: left;" class="section-title no_bg">Payment Methods</td>
             </tr>
             <tr>
                 <td>
                     <p class="bold"><span class="label">Account Name:</span> Win Zaw Oo</p>
-
                     <p><span class="label">Kpay:</span> 09 422 483 276</p>
                     <p><span class="label">Wave Pay:</span> 09 422 483 276</p>
                     <p><span class="label">AYA Pay:</span> 09 422 483 276</p>
@@ -259,35 +236,24 @@ border: none;
                     <p><span class="label">CB Bank Account:</span> 0107 6001 0006 1239</p>
                 </td>
                 <td style="width: 50%;"></td>
-
-
             </tr>
-
-              <tr>
+            <tr>
                 <td style="width: 50%;"></td>
-
                 <td style="width: 50%;" class='thank-you_one'>
-                              <img  src="{{ $sign_base64 }}" alt="Cherry Lann Logo" class=" logo">
-
+                    <img src="{{ $sign_base64 }}" alt="Cherry Lann Logo" class="logo">
                 </td>
             </tr>
-              <tr>
+            <tr>
                 <td style="width: 50%;"></td>
-
                 <td style="width: 50%;" class='thank-you_one'>
-                    <p >Win Zaw Oo</p>
-                    <p >Founder</p>
+                    <p>Win Zaw Oo</p>
+                    <p>Founder</p>
                 </td>
             </tr>
         </table>
 
-
-
-
-
         <!-- Footer -->
         <table class="footer">
-
             <tr>
                 <td style="width: 50%;"></td>
                 <td style="width: 50%;" class="thank-you">Thank you for choosing us !!</td>

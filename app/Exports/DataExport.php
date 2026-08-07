@@ -37,7 +37,6 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
             $items = $dataInput->items;
 
             if ($items->isEmpty()) {
-                // Still emit one row so the record isn't silently dropped from the export
                 $rows->push([
                     'page_name'     => $dataInput->page_name,
                     'customer_name' => $dataInput->customer_name,
@@ -78,10 +77,20 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
         return $rows;
     }
 
+    /**
+     * Overall total across every filtered DataInput (regardless of status),
+     * counted once per record — NOT summed from the flattened per-item rows,
+     * since that would double-count records with multiple items.
+     */
+    private function overallTotal(): float
+    {
+        return (float) $this->dataInputs->sum('total_amount');
+    }
+
     public function styles(Worksheet $sheet)
     {
         // First (summary) table header — row 1
-        $sheet->getStyle("A1:E1")->applyFromArray([
+        $sheet->getStyle("A1:F1")->applyFromArray([
             'font' => [
                 'bold' => true,
                 'size' => 10,
@@ -113,6 +122,12 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
             ],
         ]);
 
+        // Grand-total row at the bottom of the detail table — bold it
+        $lastRow = $secondTableStartRow + 1 + $this->flattenRows()->count();
+        $sheet->getStyle("A{$lastRow}:M{$lastRow}")->applyFromArray([
+            'font' => ['bold' => true],
+        ]);
+
         return [];
     }
 
@@ -136,6 +151,7 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
             'charges'       => $this->charges,
             'refund'        => $this->refund,
             'pending_total' => $this->pending_total,
+            'overall_total' => $this->overallTotal(),
         ]);
     }
 }
