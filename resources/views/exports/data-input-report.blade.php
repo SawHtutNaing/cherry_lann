@@ -47,8 +47,8 @@
             <td>{{ $row['price'] }}</td>
             <td>{{ $row['discount'] }}</td>
             <td>{{ $row['line_total'] }}</td>
-            <td>{{ $row['record_total'] }}</td>
-            {{-- <td>{{ $row['status'] }}</td> --}}
+            {{-- <td>{{ $row['record_total'] }}</td> --}}
+            <td>{{ $row['status'] }}</td>
             <td>{{ $row['remark'] }}</td>
         </tr>
     @endforeach
