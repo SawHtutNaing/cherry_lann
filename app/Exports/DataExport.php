@@ -6,90 +6,40 @@ use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Font;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
-class DataExport implements FromView, WithStyles, WithColumnFormatting
+class DataExport implements FromView, WithStyles
 {
     public $dataInputs;
-    public $charges, $refund, $pending_total;
+    public $charges, $refund, $pending_total, $overall_total;
 
-    public function __construct($dataInputs, $charges, $refund, $pending_total)
+    public function __construct($dataInputs, $charges, $refund, $pending_total, $overall_total)
     {
         $this->dataInputs = $dataInputs;
         $this->charges = $charges;
         $this->refund = $refund;
         $this->pending_total = $pending_total;
+        $this->overall_total = $overall_total;
     }
 
     /**
-     * Flatten each DataInput + its items into one row per item.
-     * Requires $dataInputs to have been loaded with ['user', 'items.boostType'].
+     * How many rows the detail table renders (one per item, or one fallback
+     * row for a DataInput with no items) — needed to scope styles/formats
+     * to just those rows instead of the whole column.
      */
-    private function flattenRows()
+    private function detailRowCount(): int
     {
-        $rows = collect();
-
-        foreach ($this->dataInputs as $dataInput) {
-            $items = $dataInput->items;
-
-            if ($items->isEmpty()) {
-                $rows->push([
-                    'page_name'     => $dataInput->page_name,
-                    'customer_name' => $dataInput->customer_name,
-                    'serviced_by'   => $dataInput->user->name ?? 'N/A',
-                    'service_type'  => 'N/A',
-                    'start_date'    => 'N/A',
-                    'quantity'      => 0,
-                    'price'         => 0,
-                    'discount'      => 0,
-                    'line_total'    => 0,
-                    'record_total'  => number_format($dataInput->total_amount, 2),
-                    'status'        => $dataInput->status->label(),
-                    'remark'        => $dataInput->remark,
-                ]);
-                continue;
-            }
-
-            foreach ($items as $item) {
-                $rows->push([
-                    'page_name'     => $dataInput->page_name,
-                    'customer_name' => $dataInput->customer_name,
-                    'serviced_by'   => $dataInput->user->name ?? 'N/A',
-                    'service_type'  => $item->boostType->name ?? 'N/A',
-                    'start_date'    => $item->start_date
-                        ? \Carbon\Carbon::parse($item->start_date)->format('Y-m-d')
-                        : 'N/A',
-                    'quantity'      => $item->amount,
-                    'price'         => number_format($item->mm_kyat, 2),
-                    'discount'      => number_format($item->discount, 2),
-                    'line_total'    => number_format($item->line_total, 2),
-                    'record_total'  => number_format($dataInput->total_amount, 2),
-                    'status'        => $dataInput->status->label(),
-                    'remark'        => $dataInput->remark,
-                ]);
-            }
-        }
-
-        return $rows;
-    }
-
-    /**
-     * Overall total across every filtered DataInput (regardless of status),
-     * counted once per record — NOT summed from the flattened per-item rows,
-     * since that would double-count records with multiple items.
-     */
-    private function overallTotal(): float
-    {
-        return (float) $this->dataInputs->sum('total_amount');
+        return $this->dataInputs->sum(function ($dataInput) {
+            return max(1, $dataInput->items->count());
+        });
     }
 
     public function styles(Worksheet $sheet)
     {
         // First (summary) table header — row 1
+        // Campaing, Charge, Refund, Total, Pending, Overall Total = 6 columns, A–F
         $sheet->getStyle("A1:F1")->applyFromArray([
             'font' => [
                 'bold' => true,
@@ -106,8 +56,10 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
         ]);
 
         // Second (detail) table header — row 4
+        // No, Page Name, Cus Name, Serviced By, Service Type, Start Date,
+        // Quantity, Amount, Discount, Total Amount, Status, Remark = 12 columns, A–L
         $secondTableStartRow = 4;
-        $sheet->getStyle("A{$secondTableStartRow}:M{$secondTableStartRow}")->applyFromArray([
+        $sheet->getStyle("A{$secondTableStartRow}:L{$secondTableStartRow}")->applyFromArray([
             'font' => [
                 'bold' => true,
                 'size' => 10,
@@ -122,36 +74,40 @@ class DataExport implements FromView, WithStyles, WithColumnFormatting
             ],
         ]);
 
-        // Grand-total row at the bottom of the detail table — bold it
-        $lastRow = $secondTableStartRow + 1 + $this->flattenRows()->count();
-        $sheet->getStyle("A{$lastRow}:M{$lastRow}")->applyFromArray([
-            'font' => ['bold' => true],
-        ]);
+        // Number/date formats scoped to ONLY the detail table's data rows.
+        // (Using WithColumnFormatting here would apply to the whole column,
+        // which collides with the summary table above — e.g. column F is
+        // "Start Date" in the detail table but "Overall Total" in the
+        // summary table, so a whole-column date format corrupts that cell.)
+        $firstDataRow = $secondTableStartRow + 1; // row 5
+        $lastDataRow = $secondTableStartRow + $this->detailRowCount(); // row 4 + N
+
+        if ($this->detailRowCount() > 0) {
+            $sheet->getStyle("F{$firstDataRow}:F{$lastDataRow}")
+                ->getNumberFormat()
+                ->setFormatCode('dd/mm/yy');
+
+            $sheet->getStyle("H{$firstDataRow}:J{$lastDataRow}")
+                ->getNumberFormat()
+                ->setFormatCode(NumberFormat::FORMAT_NUMBER_00);
+        }
+
+        // Auto-size every column so nothing ever renders as ### again.
+        foreach (range('A', 'L') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
 
         return [];
-    }
-
-    public function columnFormats(): array
-    {
-        return [
-            // Detail table columns: A No, B Page, C Cus, D ServicedBy, E ServiceType,
-            // F StartDate, G Qty, H Price, I Discount, J LineTotal, K RecordTotal, L Status, M Remark
-            'F' => NumberFormat::FORMAT_DATE_YYYYMMDD,
-            'H' => NumberFormat::FORMAT_NUMBER_00,
-            'I' => NumberFormat::FORMAT_NUMBER_00,
-            'J' => NumberFormat::FORMAT_NUMBER_00,
-            'K' => NumberFormat::FORMAT_NUMBER_00,
-        ];
     }
 
     public function view(): View
     {
         return view('exports.data-input-report', [
-            'rows'          => $this->flattenRows(),
+            'dataInputs'    => $this->dataInputs,
             'charges'       => $this->charges,
             'refund'        => $this->refund,
             'pending_total' => $this->pending_total,
-            'overall_total' => $this->overallTotal(),
+            'overall_total' => $this->overall_total,
         ]);
     }
 }

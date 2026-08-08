@@ -28,6 +28,7 @@ class Report extends Component
     public $status_at;
     public $service_by;
     public $pending_total = 0;
+    public $overall_total = 0;
     public $totalCount = 0;
     public $cus_name_search;
 
@@ -77,12 +78,14 @@ class Report extends Component
         $agg = (clone $query)->selectRaw('
             COALESCE(SUM(CASE WHEN status = 1 THEN total_amount END), 0) as charges,
             COALESCE(SUM(CASE WHEN status = 2 THEN total_amount END), 0) as refund,
-            COALESCE(SUM(CASE WHEN status = 3 THEN total_amount END), 0) as pending
+            COALESCE(SUM(CASE WHEN status = 3 THEN total_amount END), 0) as pending,
+            COALESCE(SUM(total_amount), 0) as overall
         ')->first();
 
         $this->charges = (float) $agg->charges;
         $this->refund = (float) $agg->refund;
         $this->pending_total = (float) $agg->pending;
+        $this->overall_total = (float) $agg->overall;
     }
 
     public function filterData()
@@ -103,6 +106,11 @@ class Report extends Component
             ini_set('memory_limit', '1024M');
             set_time_limit(300);
 
+            // Aggregates (charges/refund/pending/overall) must reflect the
+            // full filtered set, not just whatever the live paginated page
+            // last computed, so refresh them right before exporting.
+            $this->updateAggregates();
+
             $exportData = $this->baseQuery()
                 ->with(['user', 'items.boostType'])
                 ->orderByDesc('created_at')
@@ -111,7 +119,7 @@ class Report extends Component
             $fileName = 'exports/cherry_lann_' . now()->format('Ymd_His') . '.xlsx';
 
             Excel::store(
-                new DataExport($exportData, $this->charges, $this->refund, $this->pending_total),
+                new DataExport($exportData, $this->charges, $this->refund, $this->pending_total, $this->overall_total),
                 $fileName,
                 'public'
             );
