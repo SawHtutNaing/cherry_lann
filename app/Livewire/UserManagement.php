@@ -17,7 +17,7 @@ class UserManagement extends Component
     public function mount()
     {
         $this->users = User::all();
-        if(auth()->user()->role != 'admin'){
+        if (!in_array(auth()->user()->role, ['admin', 'super_admin'])) {
             return redirect()->route('dashboard');
         }
 
@@ -25,9 +25,10 @@ class UserManagement extends Component
 
     public function toggleStatus(User $user)
     {
-        if(auth()->user()->role != 'admin' || auth()->id() === $user->id){
-             return;
+       if (!in_array(auth()->user()->role, ['admin', 'super_admin']) || auth()->id() === $user->id) {
+            return;
         }
+
         $user->status = !$user->status;
         $user->save();
         $this->users = User::all();
@@ -36,9 +37,10 @@ class UserManagement extends Component
 
     public function delete(User $user)
     {
-        if(auth()->user()->role != 'admin' || auth()->id() === $user->id){
-             return;
+              if (!in_array(auth()->user()->role, ['admin', 'super_admin']) || auth()->id() === $user->id) {
+            return;
         }
+
 
         foreach ($user->dataInputs as $dataInput) {
             // if ($dataInput->client_side_image) {

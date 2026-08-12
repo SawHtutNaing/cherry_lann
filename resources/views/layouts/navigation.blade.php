@@ -1,3 +1,10 @@
+@php
+    $role = auth()->user()->role;
+    $navLinks = collect(config('navigation'))->filter(
+        fn ($link) => is_null($link['roles']) || in_array($role, $link['roles'])
+    );
+@endphp
+
 <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <!-- Primary Navigation Menu -->
     <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -12,56 +19,11 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-
-                    {{-- <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link> --}}
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Add Boost') }}
-                    </x-nav-link>
-
-
-                    {{-- @if (auth()->user()->role == 'admin') --}}
-                        <x-nav-link :href="route('report')" :active="request()->routeIs('report')">
-                            {{ __('Report') }}
+                    @foreach ($navLinks as $link)
+                        <x-nav-link :href="route($link['route'])" :active="request()->routeIs($link['route'])">
+                            {{ __($link['label']) }}
                         </x-nav-link>
-                        @if(auth()->user()->role == 'admin')
-                        <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')">
-                            {{ __('Users Management') }}
-                        </x-nav-link>
-@endif
-                        <x-nav-link :href="route('boost_types')" :active="request()->routeIs('boost_types')">
-                            {{ __('Service Type Management') }}
-                        </x-nav-link>
-
-
-
-
-                        <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.index')">
-                            {{ __('Category Management') }}
-                        </x-nav-link>
-
-
-                        <x-nav-link :href="route('cms-images.index')" :active="request()->routeIs('cms-images.index')">
-                            {{ __('CMS Image') }}
-                        </x-nav-link>
-
-                        @if(auth()->user()->role == 'admin')
-                        <x-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.index')">
-                            {{ __('Site Settings') }}
-                        </x-nav-link>
-                        @endif
-
-
-
-                    {{-- @endif --}}
-
-
-
-
-
-
-
+                    @endforeach
                 </div>
             </div>
 
@@ -72,10 +34,8 @@
                         <button
                             class="inline-flex items-center px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out bg-white border border-transparent rounded-md hover:text-gray-700 focus:outline-none">
                             <div>{{ Auth::user()->name }}</div>
-
                             <div class="ms-1">
-                                <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 20 20">
+                                <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
                                         clip-rule="evenodd" />
@@ -85,50 +45,21 @@
                     </x-slot>
 
                     <x-slot name="content">
-
-                        <x-dropdown-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                            {{ __('Add Boost') }}
-                        </x-dropdown-link>
-
-
-                        {{-- @if (auth()->user()->role == 'admin') --}}
-                            <x-dropdown-link :href="route('report')" :active="request()->routeIs('report')">
-                                {{ __('Report') }}
+                        @foreach ($navLinks as $link)
+                            <x-dropdown-link :href="route($link['route'])" :active="request()->routeIs($link['route'])">
+                                {{ __($link['label']) }}
                             </x-dropdown-link>
-                            @if(auth()->user()->role == 'admin')
-                            <x-dropdown-link :href="route('users.index')" :active="request()->routeIs('users.index')">
-                                {{ __('Users Management') }}
-                            </x-dropdown-link>
-                            @endif
-
-
-
-
-
-
-                        <x-dropdown-link  :href="route('boost_types')" :active="request()->routeIs('boost_types')">
-                            {{ __('Service Type Management') }}
-                        </x-dropdown-link >
-
-                        @if(auth()->user()->role == 'admin')
-                        <x-dropdown-link :href="route('settings.index')" :active="request()->routeIs('settings.index')">
-                            {{ __('Site Settings') }}
-                        </x-dropdown-link>
-                        @endif
+                        @endforeach
 
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
-
-
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
                             <x-dropdown-link :href="route('logout')"
-                                onclick="event.preventDefault();
-                                                this.closest('form').submit();">
+                                onclick="event.preventDefault(); this.closest('form').submit();">
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
                         </form>
@@ -155,9 +86,11 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+            @foreach ($navLinks as $link)
+                <x-responsive-nav-link :href="route($link['route'])" :active="request()->routeIs($link['route'])">
+                    {{ __($link['label']) }}
+                </x-responsive-nav-link>
+            @endforeach
         </div>
 
         <!-- Responsive Settings Options -->
@@ -167,53 +100,18 @@
                 <div class="text-sm font-medium text-gray-500">{{ Auth::user()->email }}</div>
             </div>
 
-
             <div class="mt-3 space-y-1">
-
-                {{-- <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                    {{ __('Add Boost') }}
-                </x-responsive-nav-link> --}}
-
-
-                {{-- @if (auth()->user()->role == 'admin') --}}
-                    <x-responsive-nav-link :href="route('report')" :active="request()->routeIs('report')">
-                        {{ __('Report') }}
-                    </x-responsive-nav-link>
-                    @if(auth()->user()->role == 'admin')
-                    <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')">
-                        {{ __('Users Management') }}
-                    </x-responsive-nav-link>
-                    @endif
-
-
-
-                <x-responsive-nav-link  :href="route('boost_types')" :active="request()->routeIs('boost_types')">
-                    {{ __('Service Type Management') }}
-                </x-responsive-nav-link >
-
-                @if(auth()->user()->role == 'admin')
-                <x-responsive-nav-link :href="route('settings.index')" :active="request()->routeIs('settings.index')">
-                    {{ __('Site Settings') }}
-                </x-responsive-nav-link>
-                @endif
-
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
 
-
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
                     <x-responsive-nav-link :href="route('logout')"
-                        onclick="event.preventDefault();
-                                        this.closest('form').submit();">
+                        onclick="event.preventDefault(); this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
-
-
-
                 </form>
             </div>
         </div>

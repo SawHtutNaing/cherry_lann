@@ -8,8 +8,8 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('data_inputs', function (Blueprint $table) {
-            $table->string('client_side_image')->nullable()->after('remark');
-            $table->string('service_side_image')->nullable()->after('client_side_image');
+            // $table->string('client_side_image')->nullable()->after('remark');
+            // $table->string('service_side_image')->nullable()->after('client_side_image');
         });
     }
 

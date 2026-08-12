@@ -43,6 +43,12 @@
                                     class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400 text-center">
                                     Edit
                                 </a>
+                                @if (auth()->user()->role === 'super_admin')
+                                    <a href="{{ route('users.profit-logs', $user->id) }}"
+                                        class="px-4 py-2 text-white bg-purple-600 rounded shadow hover:bg-purple-500 text-center">
+                                        Profit Logs
+                                    </a>
+                                @endif
                                 @if (auth()->id() !== $user->id)
                                     <button wire:click="toggleStatus({{ $user->id }})"
                                         class="px-4 py-2 text-white {{ $user->status ? 'bg-orange-500 hover:bg-orange-400' : 'bg-green-500 hover:bg-green-400' }} rounded shadow text-center">

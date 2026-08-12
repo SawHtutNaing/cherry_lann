@@ -1,3 +1,4 @@
+
 <?php
 
 use App\Http\Controllers\DataInputImageController;
@@ -9,6 +10,10 @@ use App\Livewire\UserManagement;
 use App\Livewire\Report;
 use App\Livewire\UserForm;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\ExpenseCategoryManagement;
+use App\Livewire\ServiceTypeManagement;
+use App\Livewire\ExpenseManagement;
+
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -72,12 +77,30 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+
 use App\Livewire\SiteSettingManagement;
 
 Route::middleware(['auth'])->group(function () {
     // ...existing routes
     Route::get('/settings', SiteSettingManagement::class)->name('settings.index');
 });
+
+
+use App\Livewire\UserProfitLogManagement;
+
+// Add this inside your existing auth/verified middleware group, near the other user routes:
+Route::middleware(['auth'])->group(function () {
+Route::get('users/{user}/profit-logs', UserProfitLogManagement::class)->name('users.profit-logs');
+
+    Route::get('/expense-cateogry', ExpenseCategoryManagement::class)->name('expense_category.index');
+    Route::get('/service-types', ServiceTypeManagement::class)->name('service_type.index');
+    Route::get('/expense-management', ExpenseManagement::class)->name('expense_management.index');
+
+
+
+
+});
+
 
 
 // routes/web.php
@@ -91,3 +114,17 @@ Route::get('/', function () {
 
     return view('welcome', compact('categories', 'settings'));
 });
+
+
+
+use App\Livewire\ProfitReport;
+
+// Add inside your existing auth/verified middleware group:
+Route::get('/profit-report', ProfitReport::class)->name('profit-report.index');
+
+
+
+use App\Livewire\SiteProfitReport;
+
+// Add inside your existing auth/verified middleware group:
+Route::get('/site-profit-report', SiteProfitReport::class)->name('site-profit-report.index');
