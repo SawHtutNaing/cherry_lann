@@ -36,7 +36,7 @@ class ProfitReport extends Component
     public function mount()
     {
         $this->serviceTypes = ServiceType::orderBy('name')->get();
-        $this->users = User::where('role', 'user')->orderBy('name')->get();
+        $this->users = User::whereIn('role', ['user','admin'])->orderBy('name')->get();
         $this->startDate = now()->startOfMonth()->format('Y-m-d');
         $this->endDate = now()->format('Y-m-d');
     }
