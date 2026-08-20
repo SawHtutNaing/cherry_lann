@@ -14,66 +14,83 @@
             {!! implode('', $errors->all('<div>:message</div>')) !!}
         </div>
     @endif
-    <h1 class="mb-6 text-2xl font-semibold">Service Type Management</h1>
+    <h1 class="mb-6 text-2xl font-semibold">Service Group Management</h1>
     <button wire:click="openModal" class="px-4 py-2 text-white bg-blue-500 rounded shadow hover:bg-blue-400">
-        Create New Service Type
+        Create New Service Group
     </button>
+    <p class="mt-2 text-xs text-gray-400">Drag the ⠿ handle to reorder.</p>
+
     <div class="mt-6 overflow-x-auto">
         <table class="min-w-full bg-white border border-gray-200">
-            <thead>
-                <tr class="w-full bg-gray-100 border-b">
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Name</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Type</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Boost Types</th>
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($serviceTypes as $serviceType)
-                    <tr class="border-b">
-                        <td class="px-6 py-4 text-sm text-gray-800">{{ $serviceType->name }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-800 uppercase">{{ $serviceType->type }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-800">
-                            @forelse ($serviceType->boostTypes as $boostType)
-                                <span class="inline-block px-2 py-1 mb-1 mr-1 text-xs text-white bg-indigo-500 rounded">
-                                    {{ $boostType->name }}
-                                </span>
-                            @empty
-                                <span class="text-xs text-gray-400">None</span>
-                            @endforelse
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex flex-col sm:flex-row gap-2">
-                                <button wire:click="openModal({{ $serviceType->id }})"
-                                    class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400 text-center">
-                                    Edit
-                                </button>
-                                @if ($serviceType->type === 'dollar')
-                                    <button wire:click="openExchangeModal({{ $serviceType->id }})"
-                                        class="px-4 py-2 text-white bg-purple-600 rounded shadow hover:bg-purple-500 text-center">
-                                        Exchange Rates
-                                    </button>
-                                @endif
-                                <button wire:click="delete({{ $serviceType->id }})"
-                                    wire:confirm="Are you sure you want to delete this service type?"
-                                    class="px-4 py-2 text-white bg-red-600 rounded shadow hover:bg-red-500 text-center">
-                                    Delete
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
+           <thead>
+    <tr class="w-full bg-gray-100 border-b">
+        <th class="w-16 px-2 py-3"></th>
+        <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Name</th>
+        <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Type</th>
+        <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Boost Types</th>
+        <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Actions</th>
+    </tr>
+</thead>
+<tbody>
+    @foreach ($serviceTypes as $index => $serviceType)
+        <tr class="border-b" wire:key="service-type-{{ $serviceType->id }}">
+            <td class="px-2 py-4">
+                <div class="flex flex-col items-center gap-1">
+                    <button wire:click="moveUp({{ $serviceType->id }})"
+                        @if ($index === 0) disabled @endif
+                        class="flex items-center justify-center w-8 h-8 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed">
+                        ▲
+                    </button>
+                    <button wire:click="moveDown({{ $serviceType->id }})"
+                        @if ($index === $serviceTypes->count() - 1) disabled @endif
+                        class="flex items-center justify-center w-8 h-8 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed">
+                        ▼
+                    </button>
+                </div>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-800">{{ $serviceType->name }}</td>
+            <td class="px-6 py-4 text-sm text-gray-800 uppercase">{{ $serviceType->type }}</td>
+            <td class="px-6 py-4 text-sm text-gray-800">
+                @forelse ($serviceType->boostTypes as $boostType)
+                    <span class="inline-block px-2 py-1 mb-1 mr-1 text-xs text-white bg-indigo-500 rounded">
+                        {{ $boostType->name }}
+                    </span>
+                @empty
+                    <span class="text-xs text-gray-400">None</span>
+                @endforelse
+            </td>
+            <td class="px-6 py-4">
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <button wire:click="openModal({{ $serviceType->id }})"
+                        class="px-4 py-2 text-white bg-yellow-500 rounded shadow hover:bg-yellow-400 text-center">
+                        Edit
+                    </button>
+                    @if ($serviceType->type === 'dollar')
+                        <button wire:click="openExchangeModal({{ $serviceType->id }})"
+                            class="px-4 py-2 text-white bg-purple-600 rounded shadow hover:bg-purple-500 text-center">
+                            Exchange Rates
+                        </button>
+                    @endif
+                    <button wire:click="delete({{ $serviceType->id }})"
+                        wire:confirm="Are you sure you want to delete this service group?"
+                        class="px-4 py-2 text-white bg-red-600 rounded shadow hover:bg-red-500 text-center">
+                        Delete
+                    </button>
+                </div>
+            </td>
+        </tr>
+    @endforeach
+</tbody>
         </table>
     </div>
 
-    {{-- Create / Edit Service Type Modal --}}
+    {{-- Create / Edit Service Group Modal --}}
     @if ($isOpen)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div class="w-full max-w-md p-6 mx-4 bg-white rounded shadow-lg max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold">
-                        {{ $serviceTypeId ? 'Edit Service Type' : 'Create Service Type' }}
+                        {{ $serviceTypeId ? 'Edit Service Group' : 'Create Service Group' }}
                     </h2>
                     <button wire:click="closeModal" class="text-gray-400 hover:text-gray-600">
                         &times;
@@ -221,4 +238,69 @@
             </div>
         </div>
     @endif
+
+    <script>
+        document.addEventListener('DOMContentLoaded', initServiceTypeSort);
+        document.addEventListener('livewire:navigated', initServiceTypeSort);
+
+        function initServiceTypeSort() {
+            const tbody = document.getElementById('service-type-sortable');
+            if (!tbody || tbody.dataset.sortInit) return;
+            tbody.dataset.sortInit = '1';
+
+            let draggingRow = null;
+
+            tbody.addEventListener('pointerdown', function (e) {
+                const handle = e.target.closest('.drag-handle');
+                if (!handle) return;
+
+                draggingRow = handle.closest('tr');
+                draggingRow.setPointerCapture(e.pointerId);
+                draggingRow.classList.add('opacity-50', 'bg-blue-50');
+                document.body.style.userSelect = 'none';
+
+                function onMove(e) {
+                    if (!draggingRow) return;
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    const currentIndex = rows.indexOf(draggingRow);
+
+                    for (let i = 0; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (row === draggingRow) continue;
+
+                        const rect = row.getBoundingClientRect();
+                        const midpoint = rect.top + rect.height / 2;
+
+                        if (e.clientY < midpoint && i < currentIndex) {
+                            tbody.insertBefore(draggingRow, row);
+                            break;
+                        }
+                        if (e.clientY > midpoint && i > currentIndex) {
+                            tbody.insertBefore(draggingRow, row.nextSibling);
+                            break;
+                        }
+                    }
+                }
+
+                function onUp(e) {
+                    document.removeEventListener('pointermove', onMove);
+                    document.removeEventListener('pointerup', onUp);
+                    document.body.style.userSelect = '';
+
+                    if (draggingRow) {
+                        draggingRow.classList.remove('opacity-50', 'bg-blue-50');
+                        draggingRow.releasePointerCapture(e.pointerId);
+
+                        const ids = Array.from(tbody.querySelectorAll('tr')).map(r => r.dataset.id);
+                        @this.call('updateOrder', ids);
+
+                        draggingRow = null;
+                    }
+                }
+
+                document.addEventListener('pointermove', onMove);
+                document.addEventListener('pointerup', onUp);
+            });
+        }
+    </script>
 </div>

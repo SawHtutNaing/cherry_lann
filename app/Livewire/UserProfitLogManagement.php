@@ -14,7 +14,7 @@ class UserProfitLogManagement extends Component
     public $boostTypes;
 
     public $profitLogId;
-    public $boost_type_id;
+    public $boost_type_ids = [];
     public $type = 'flat';
     public $amount;
     public $from_date;
@@ -25,13 +25,18 @@ class UserProfitLogManagement extends Component
     protected function rules()
     {
         return [
-            'boost_type_id' => 'required|exists:boost_types,id',
+            'boost_type_ids' => 'required|array|min:1',
+            'boost_type_ids.*' => 'exists:boost_types,id',
             'type' => 'required|in:flat,percentage',
             'amount' => 'required|numeric|min:0',
             'from_date' => 'required|date',
             'to_date' => 'nullable|date|after_or_equal:from_date',
         ];
     }
+
+    protected $messages = [
+        'boost_type_ids.required' => 'Please select at least one boost type.',
+    ];
 
     public function mount(User $user)
     {
@@ -58,7 +63,7 @@ class UserProfitLogManagement extends Component
         if ($profitLogId) {
             $log = UserProfitLog::findOrFail($profitLogId);
             $this->profitLogId = $log->id;
-            $this->boost_type_id = $log->boost_type_id;
+            $this->boost_type_ids = [$log->boost_type_id];
             $this->type = $log->type;
             $this->amount = $log->amount;
             $this->from_date = $log->from_date->format('Y-m-d');
@@ -77,9 +82,22 @@ class UserProfitLogManagement extends Component
     {
         $this->validate();
 
+        // Overlap check, per selected boost type
+        foreach ($this->boost_type_ids as $boostTypeId) {
+            if ($this->hasOverlap($boostTypeId)) {
+                $boostTypeName = $this->boostTypes->firstWhere('id', $boostTypeId)?->name ?? 'Selected boost type';
+                $this->addError(
+                    'boost_type_ids',
+                    "\"{$boostTypeName}\" already has an overlapping profit log for that date range."
+                );
+            }
+        }
+
+        if ($this->getErrorBag()->has('boost_type_ids')) {
+            return;
+        }
+
         $data = [
-            'user_id' => $this->user->id,
-            'boost_type_id' => $this->boost_type_id,
             'type' => $this->type,
             'amount' => $this->amount,
             'from_date' => $this->from_date,
@@ -87,11 +105,31 @@ class UserProfitLogManagement extends Component
         ];
 
         if ($this->profitLogId) {
-            UserProfitLog::findOrFail($this->profitLogId)->update($data);
+            // Editing: update the existing row with the first selected boost type.
+            // Any additional boost types picked become new rows.
+            $primaryBoostTypeId = $this->boost_type_ids[0];
+
+            UserProfitLog::findOrFail($this->profitLogId)->update(array_merge($data, [
+                'boost_type_id' => $primaryBoostTypeId,
+            ]));
+
+            foreach (array_slice($this->boost_type_ids, 1) as $boostTypeId) {
+                UserProfitLog::create(array_merge($data, [
+                    'user_id' => $this->user->id,
+                    'boost_type_id' => $boostTypeId,
+                ]));
+            }
+
             session()->flash('message', 'Profit log updated successfully.');
         } else {
-            UserProfitLog::create($data);
-            session()->flash('message', 'Profit log created successfully.');
+            foreach ($this->boost_type_ids as $boostTypeId) {
+                UserProfitLog::create(array_merge($data, [
+                    'user_id' => $this->user->id,
+                    'boost_type_id' => $boostTypeId,
+                ]));
+            }
+
+            session()->flash('message', 'Profit log(s) created successfully.');
         }
 
         $this->loadProfitLogs();
@@ -112,12 +150,36 @@ class UserProfitLogManagement extends Component
     public function resetForm()
     {
         $this->profitLogId = null;
-        $this->boost_type_id = '';
+        $this->boost_type_ids = [];
         $this->type = 'flat';
         $this->amount = '';
         $this->from_date = '';
         $this->to_date = '';
         $this->resetErrorBag();
+    }
+
+    /**
+     * Check whether the given date range overlaps an existing log
+     * for the same user + boost type (excluding the log being edited).
+     */
+    protected function hasOverlap($boostTypeId): bool
+    {
+        $toDate = $this->to_date ?: '9999-12-31';
+
+        $query = UserProfitLog::where('user_id', $this->user->id)
+            ->where('boost_type_id', $boostTypeId);
+
+        if ($this->profitLogId) {
+            $query->where('id', '!=', $this->profitLogId);
+        }
+
+        $query->where('from_date', '<=', $toDate)
+            ->where(function ($q) {
+                $q->whereNull('to_date')
+                  ->orWhere('to_date', '>=', $this->from_date);
+            });
+
+        return $query->exists();
     }
 
     public function render()

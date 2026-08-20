@@ -36,7 +36,7 @@
         <table class="min-w-full bg-white border border-gray-200">
             <thead>
                 <tr class="w-full bg-gray-100 border-b">
-                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Boost Type</th>
+                    <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Service Type</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Type</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Amount</th>
                     <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">From</th>
@@ -134,18 +134,28 @@
                     </button>
                 </div>
                 <form wire:submit.prevent="save">
-                    <div class="mb-4">
-                        <label for="boost_type_id" class="block mb-1 text-sm font-medium text-gray-700">
-                            Boost Type
-                        </label>
-                        <select id="boost_type_id" wire:model="boost_type_id"
-                            class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <option value="">Select a boost type</option>
-                            @foreach ($boostTypes as $boostType)
-                                <option value="{{ $boostType->id }}">{{ $boostType->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                   <div class="mb-4">
+    <label class="block mb-1 text-sm font-medium text-gray-700">
+        Service Type(s)
+    </label>
+    <div class="grid grid-cols-2 gap-2 p-3 overflow-y-auto border border-gray-300 rounded shadow-sm max-h-40 sm:grid-cols-3">
+        @forelse ($boostTypes as $boostType)
+            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+                <input type="checkbox" wire:model="boost_type_ids" value="{{ $boostType->id }}"
+                    class="text-blue-500 border-gray-300 rounded shadow-sm focus:ring-2 focus:ring-blue-400">
+                {{ $boostType->name }}
+            </label>
+        @empty
+            <p class="text-sm text-gray-400">No Service types available.</p>
+        @endforelse
+    </div>
+    <p class="mt-1 text-xs text-gray-400">
+        Select one or more. A separate log is created for each Service type checked.
+    </p>
+    @error('boost_type_ids')
+        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+    @enderror
+</div>
 
                     <div class="mb-4">
                         <label for="type" class="block mb-1 text-sm font-medium text-gray-700">Type</label>

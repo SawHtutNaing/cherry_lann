@@ -5,10 +5,10 @@
     <div class="p-4 mb-6 bg-white border border-gray-200 rounded shadow">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-                <label for="serviceTypeId" class="block mb-1 text-sm font-medium text-gray-700">Service Type</label>
+                <label for="serviceTypeId" class="block mb-1 text-sm font-medium text-gray-700">Service Group</label>
                 <select id="serviceTypeId" wire:model="serviceTypeId"
                     class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-                    <option value="">Select a service type</option>
+                    <option value="">Select a service Group</option>
                     @foreach ($serviceTypes as $st)
                         <option value="{{ $st->id }}">{{ $st->name }} ({{ strtoupper($st->type) }})</option>
                     @endforeach
@@ -85,14 +85,14 @@
             <ul class="pl-5 mb-3 text-sm list-disc">
                 @foreach ($missingProfitLogs as $missing)
                     <li>
-                        Boost type <strong>{{ $missing['boost_type'] }}</strong>
+                        Service Group <strong>{{ $missing['boost_type'] }}</strong>
                         for user <strong>{{ $missing['user'] }}</strong>
                         on <strong>{{ $missing['date'] }}</strong>
                     </li>
                 @endforeach
             </ul>
             <p class="text-sm">
-                Please add a profit log covering these dates for each user/boost type combination above.
+                Please add a profit log covering these dates for each user/service type combination above.
             </p>
         </div>
     @endif
@@ -111,35 +111,37 @@
                 <table class="min-w-full bg-white border border-gray-200">
                     <thead>
                         <tr class="w-full bg-gray-100 border-b">
-                            <th class="px-4 py-3 text-sm font-medium text-left text-gray-600">Boost Type</th>
-                            <th class="px-4 py-3 text-sm font-medium text-right text-gray-600">Line Total</th>
+                            <th class="px-4 py-3 text-sm font-bold text-center text-gray-600">No.</th>
+                            <th class="px-4 py-3 text-sm font-bold text-center text-gray-600">Service Type</th>
+                            <th class="px-4 py-3 text-sm font-bold text-center text-gray-600">Line Total</th>
                             @if ($isDollar)
-                                <th class="px-4 py-3 text-sm font-medium text-right text-gray-600">Discount</th>
-                                <th class="px-4 py-3 text-sm font-medium text-right text-gray-600">Revenue</th>
+                                <th class="px-4 py-3 text-sm font-bold text-center text-gray-600">Discount</th>
+                                <th class="px-4 py-3 text-sm font-bold text-center text-gray-600">Revenue</th>
                             @endif
-                            <th class="px-4 py-3 text-sm font-medium text-right text-gray-600">Employee Profit</th>
-                            <th class="px-4 py-3 text-sm font-medium text-right text-gray-600">My Profit</th>
+                            <th class="px-4 py-3 text-sm font-bold text-center text-gray-600">Employee Profit</th>
+                            <th class="px-4 py-3 text-sm font-bold text-center text-gray-600">My Profit</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($reportRows as $row)
                             <tr class="border-b">
-                                <td class="px-4 py-3 text-sm text-gray-800">{{ $row['boost_type_name'] }}</td>
-                                <td class="px-4 py-3 text-sm text-right text-gray-800">
+                                <td class="px-4 py-3 text-sm text-center text-gray-800">{{ $loop->iteration }}</td>
+                                <td class="px-4 py-3 text-sm text-center text-gray-800">{{ $row['boost_type_name'] }}</td>
+                                <td class="px-4 py-3 text-sm text-center text-gray-800">
                                     {{ number_format($row['line_total'], 2) }}
                                 </td>
                                 @if ($isDollar)
-                                    <td class="px-4 py-3 text-sm text-right text-gray-800">
+                                    <td class="px-4 py-3 text-sm text-center text-gray-800">
                                         {{ number_format($row['discount'], 2) }}
                                     </td>
-                                    <td class="px-4 py-3 text-sm text-right text-gray-800">
+                                    <td class="px-4 py-3 text-sm text-center text-gray-800">
                                         {{ number_format($row['revenue'], 2) }}
                                     </td>
                                 @endif
-                                <td class="px-4 py-3 text-sm text-right text-gray-800">
+                                <td class="px-4 py-3 text-sm text-center text-gray-800">
                                     {{ number_format($row['employee_profit'], 2) }}
                                 </td>
-                                <td class="px-4 py-3 text-sm font-semibold text-right text-gray-900">
+                                <td class="px-4 py-3 text-sm font-semibold text-center text-gray-900">
                                     {{ number_format($row['my_profit'], 2) }}
                                 </td>
                             </tr>
@@ -147,22 +149,23 @@
                     </tbody>
                     <tfoot>
                         <tr class="bg-gray-100 border-t-2 border-gray-300">
-                            <td class="px-4 py-3 text-sm font-semibold text-gray-800">Total</td>
-                            <td class="px-4 py-3 text-sm font-semibold text-right text-gray-800">
+                            <td class="px-4 py-3 text-sm font-bold text-center text-gray-800"></td>
+                            <td class="px-4 py-3 text-sm font-bold text-center text-gray-800">Total</td>
+                            <td class="px-4 py-3 text-sm font-bold text-center text-gray-800">
                                 {{ number_format($reportTotals['line_total'], 2) }}
                             </td>
                             @if ($isDollar)
-                                <td class="px-4 py-3 text-sm font-semibold text-right text-gray-800">
+                                <td class="px-4 py-3 text-sm font-bold text-center text-gray-800">
                                     {{ number_format($reportTotals['discount'], 2) }}
                                 </td>
-                                <td class="px-4 py-3 text-sm font-semibold text-right text-gray-800">
+                                <td class="px-4 py-3 text-sm font-bold text-center text-gray-800">
                                     {{ number_format($reportTotals['revenue'], 2) }}
                                 </td>
                             @endif
-                            <td class="px-4 py-3 text-sm font-semibold text-right text-gray-800">
+                            <td class="px-4 py-3 text-sm font-bold text-center text-gray-800">
                                 {{ number_format($reportTotals['employee_profit'], 2) }}
                             </td>
-                            <td class="px-4 py-3 text-sm font-bold text-right text-gray-900">
+                            <td class="px-4 py-3 text-sm font-bold text-center text-gray-900">
                                 {{ number_format($reportTotals['my_profit'], 2) }}
                             </td>
                         </tr>
@@ -174,8 +177,11 @@
             <div class="space-y-4 md:hidden">
                 @foreach ($reportRows as $row)
                     <div class="p-4 bg-white border border-gray-200 rounded shadow">
-                        <p class="mb-2 text-sm font-semibold text-gray-800">{{ $row['boost_type_name'] }}</p>
-                        <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                        <p class="mb-2 text-sm font-semibold text-gray-800">
+                            <span class="text-gray-400">#{{ $loop->iteration }}</span>
+                            {{ $row['boost_type_name'] }}
+                        </p>
+                        <div class="grid grid-cols-2 gap-2 text-xs text-center text-gray-600">
                             <div>
                                 <span class="block text-gray-400">Line Total</span>
                                 {{ number_format($row['line_total'], 2) }}
@@ -206,7 +212,7 @@
 
                 <div class="p-4 bg-gray-100 border border-gray-300 rounded shadow">
                     <p class="mb-2 text-sm font-semibold text-gray-800">Total</p>
-                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-700">
+                    <div class="grid grid-cols-2 gap-2 text-xs text-center text-gray-700">
                         <div>
                             <span class="block text-gray-400">Line Total</span>
                             {{ number_format($reportTotals['line_total'], 2) }}

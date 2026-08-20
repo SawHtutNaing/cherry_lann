@@ -3,7 +3,7 @@
 return [
     // roles => null means visible to every authenticated user, regardless of role
 
-    ['route' => 'dashboard', 'label' => 'Add Boost', 'roles' => ['admin','user']],
+    ['route' => 'dashboard', 'label' => 'Voucher Management', 'roles' => ['admin','user']],
 
     // Super Admin only
     ['route' => 'expense_category.index', 'label' => 'Expense Category', 'roles' => ['super_admin']],
@@ -15,7 +15,7 @@ return [
     // Admin + Super Admin
     ['route' => 'users.index', 'label' => 'Users Management', 'roles' => ['admin', 'super_admin']],
 
-    ['route' => 'boost_types', 'label' => 'Service Type Management', 'roles' => ['admin']],
+    ['route' => 'boost_types', 'label' => 'Service Type Management', 'roles' => ['admin' , 'super_admin']],
     ['route' => 'categories.index', 'label' => 'Category Management', 'roles' => ['admin']],
     ['route' => 'cms-images.index', 'label' => 'CMS Image', 'roles' => ['admin']],
 

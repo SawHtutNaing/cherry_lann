@@ -17,6 +17,12 @@ class ExpenseManagement extends Component
     public $expenseId;
     public $isOpen = false;
 
+    // Filters
+    public $filterCategoryIds = [];
+    public $filterFromDate;
+    public $filterToDate;
+    public $totalAmount = 0;
+
     protected function rules()
     {
         return [
@@ -29,13 +35,56 @@ class ExpenseManagement extends Component
 
     public function mount()
     {
-        $this->loadExpenses();
         $this->expenseCategories = ExpenseCategory::all();
+
+        // Default filter: current month
+        $this->filterFromDate = now()->startOfMonth()->format('Y-m-d');
+        $this->filterToDate = now()->endOfMonth()->format('Y-m-d');
+
+        $this->loadExpenses();
     }
 
     public function loadExpenses()
     {
-        $this->expenses = Expense::with('expenseCategory')->latest()->get();
+        $query = Expense::with('expenseCategory');
+
+        if ($this->filterFromDate) {
+            $query->whereDate('date', '>=', $this->filterFromDate);
+        }
+
+        if ($this->filterToDate) {
+            $query->whereDate('date', '<=', $this->filterToDate);
+        }
+
+        if (!empty($this->filterCategoryIds)) {
+            $query->whereIn('expense_category_id', $this->filterCategoryIds);
+        }
+
+        $this->expenses = $query->latest('date')->get();
+        $this->totalAmount = $this->expenses->sum('amount');
+    }
+
+    public function updatedFilterCategoryIds()
+    {
+        $this->loadExpenses();
+    }
+
+    public function updatedFilterFromDate()
+    {
+        $this->loadExpenses();
+    }
+
+    public function updatedFilterToDate()
+    {
+        $this->loadExpenses();
+    }
+
+    public function resetFilters()
+    {
+        $this->filterCategoryIds = [];
+        $this->filterFromDate = now()->startOfMonth()->format('Y-m-d');
+        $this->filterToDate = now()->endOfMonth()->format('Y-m-d');
+        $this->loadExpenses();
     }
 
     public function openModal($expenseId = null)

@@ -3,7 +3,7 @@
 
     {{-- Filter form --}}
     <div class="p-4 mb-6 bg-white border border-gray-200 rounded shadow">
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
             <div>
                 <label for="startDate" class="block mb-1 text-sm font-medium text-gray-700">Start Date</label>
                 <input type="date" id="startDate" wire:model="startDate"
@@ -23,6 +23,15 @@
                     <span wire:loading wire:target="generateReport">Generating...</span>
                 </button>
             </div>
+            @if ($hasGenerated && !empty($serviceTypeGroups))
+                <div class="flex items-end">
+                    <button wire:click="exportExcel"
+                        class="w-full px-4 py-2 text-white bg-emerald-600 rounded shadow hover:bg-emerald-500 sm:w-auto">
+                        <span wire:loading.remove wire:target="exportExcel">Export Excel</span>
+                        <span wire:loading wire:target="exportExcel">Exporting...</span>
+                    </button>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -68,47 +77,54 @@
         @else
             @foreach ($serviceTypeGroups as $group)
                 @php $isDollar = $group['type'] === 'dollar'; @endphp
-                <div class="mb-6 overflow-hidden bg-white border border-gray-200 rounded shadow">
-                    <div class="px-4 py-3 bg-gray-100 border-b">
+                <div class="mb-6 overflow-hidden bg-white border border-gray-200 rounded shadow" x-data="{ open: false }">
+                    <div class="flex items-center justify-between px-4 py-3 bg-gray-100 border-b">
                         <h2 class="text-sm font-semibold text-gray-800 sm:text-base">
                             {{ $group['service_type_name'] }}
                             <span class="ml-2 text-xs font-normal text-gray-500 uppercase">({{ $group['type'] }})</span>
                         </h2>
+                        <button @click="open = !open"
+                            class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200">
+                            <span x-show="!open">Show Details</span>
+                            <span x-show="open" style="display:none">Hide Details</span>
+                        </button>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
-                            <thead>
+                            <thead x-show="open" style="display:none">
                                 <tr class="bg-gray-50 border-b">
-                                    <th class="px-4 py-2 text-sm font-medium text-left text-gray-600">Boost Type</th>
-                                    <th class="px-4 py-2 text-sm font-medium text-right text-gray-600">Line Total</th>
-                                    @if ($isDollar)
-                                        <th class="px-4 py-2 text-sm font-medium text-right text-gray-600">Discount</th>
-                                        <th class="px-4 py-2 text-sm font-medium text-right text-gray-600">Revenue</th>
-                                    @endif
-                                    <th class="px-4 py-2 text-sm font-medium text-right text-gray-600">Employee Profit</th>
-                                    <th class="px-4 py-2 text-sm font-medium text-right text-gray-600">My Profit</th>
+                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">No</th>
+                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Boost Type</th>
+                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Line Total</th>
+                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Discount</th>
+                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Discount (MMK)</th>
+                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Revenue</th>
+                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">E_Profit</th>
+                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">M_Profit</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody x-show="open" style="display:none">
                                 @foreach ($group['rows'] as $row)
                                     <tr class="border-b">
-                                        <td class="px-4 py-2 text-sm text-gray-800">{{ $row['boost_type_name'] }}</td>
-                                        <td class="px-4 py-2 text-sm text-right text-gray-800">
+                                        <td class="px-4 py-2 text-sm text-center text-gray-800">{{ $loop->iteration }}</td>
+                                        <td class="px-4 py-2 text-sm text-center text-gray-800">{{ $row['boost_type_name'] }}</td>
+                                        <td class="px-4 py-2 text-sm text-center text-gray-800">
                                             {{ number_format($row['line_total'], 2) }}
                                         </td>
-                                        @if ($isDollar)
-                                            <td class="px-4 py-2 text-sm text-right text-gray-800">
-                                                {{ number_format($row['discount'], 2) }}
-                                            </td>
-                                            <td class="px-4 py-2 text-sm text-right text-gray-800">
-                                                {{ number_format($row['revenue'], 2) }}
-                                            </td>
-                                        @endif
-                                        <td class="px-4 py-2 text-sm text-right text-gray-800">
+                                        <td class="px-4 py-2 text-sm text-center text-gray-800">
+                                            {{ $isDollar ? number_format($row['discount'], 2) : '-' }}
+                                        </td>
+                                        <td class="px-4 py-2 text-sm text-center text-gray-800">
+                                            {{ $isDollar ? number_format($row['discount_mmk'], 2) : '-' }}
+                                        </td>
+                                        <td class="px-4 py-2 text-sm text-center text-gray-800">
+                                            {{ $isDollar ? number_format($row['revenue'], 2) : '-' }}
+                                        </td>
+                                        <td class="px-4 py-2 text-sm text-center text-gray-800">
                                             {{ number_format($row['employee_profit'], 2) }}
                                         </td>
-                                        <td class="px-4 py-2 text-sm font-medium text-right text-gray-900">
+                                        <td class="px-4 py-2 text-sm font-medium text-center text-gray-900">
                                             {{ number_format($row['my_profit'], 2) }}
                                         </td>
                                     </tr>
@@ -116,22 +132,24 @@
                             </tbody>
                             <tfoot>
                                 <tr class="bg-gray-100 border-t-2 border-gray-300">
-                                    <td class="px-4 py-2 text-sm font-semibold text-gray-800">Subtotal</td>
-                                    <td class="px-4 py-2 text-sm font-semibold text-right text-gray-800">
+                                    <td class="px-4 py-2 text-sm font-bold text-center text-gray-800">Subtotal</td>
+                                    <td class="px-4 py-2 text-sm font-bold text-center text-gray-800"></td>
+                                    <td class="px-4 py-2 text-sm font-bold text-center text-gray-800">
                                         {{ number_format($group['subtotals']['line_total'], 2) }}
                                     </td>
-                                    @if ($isDollar)
-                                        <td class="px-4 py-2 text-sm font-semibold text-right text-gray-800">
-                                            {{ number_format($group['subtotals']['discount'], 2) }}
-                                        </td>
-                                        <td class="px-4 py-2 text-sm font-semibold text-right text-gray-800">
-                                            {{ number_format($group['subtotals']['revenue'], 2) }}
-                                        </td>
-                                    @endif
-                                    <td class="px-4 py-2 text-sm font-semibold text-right text-gray-800">
+                                    <td class="px-4 py-2 text-sm font-bold text-center text-gray-800">
+                                        {{ $isDollar ? number_format($group['subtotals']['discount'], 2) : '-' }}
+                                    </td>
+                                    <td class="px-4 py-2 text-sm font-bold text-center text-gray-800">
+                                        {{ $isDollar ? number_format($group['subtotals']['discount_mmk'], 2) : '-' }}
+                                    </td>
+                                    <td class="px-4 py-2 text-sm font-bold text-center text-gray-800">
+                                        {{ $isDollar ? number_format($group['subtotals']['revenue'], 2) : '-' }}
+                                    </td>
+                                    <td class="px-4 py-2 text-sm font-bold text-center text-gray-800">
                                         {{ number_format($group['subtotals']['employee_profit'], 2) }}
                                     </td>
-                                    <td class="px-4 py-2 text-sm font-bold text-right text-gray-900">
+                                    <td class="px-4 py-2 text-sm font-bold text-center text-gray-900">
                                         {{ number_format($group['subtotals']['my_profit'], 2) }}
                                     </td>
                                 </tr>
@@ -142,9 +160,9 @@
             @endforeach
 
             {{-- Combined profit before expenses --}}
-            <div class="flex items-center justify-between p-4 mb-6 bg-white border border-gray-200 rounded shadow">
-                <span class="text-sm font-semibold text-gray-700 sm:text-base">Total Profit (Before Expenses)</span>
-                <span class="text-sm font-bold text-gray-900 sm:text-base">
+            <div class="flex items-center justify-between p-4 mb-6 text-white bg-green-600 rounded shadow">
+                <span class="text-sm font-semibold sm:text-base">Before Expense</span>
+                <span class="text-sm font-bold sm:text-base">
                     {{ number_format($grandProfitTotal, 2) }}
                 </span>
             </div>
@@ -158,41 +176,43 @@
                     <table class="min-w-full">
                         <thead>
                             <tr class="bg-gray-50 border-b">
-                                <th class="px-4 py-2 text-sm font-medium text-left text-gray-600">Category</th>
-                                <th class="px-4 py-2 text-sm font-medium text-right text-gray-600">Total</th>
+                                <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">No</th>
+                                <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Category</th>
+                                <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Total</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($expenseRows as $expense)
                                 <tr class="border-b">
-                                    <td class="px-4 py-2 text-sm text-gray-800">{{ $expense['category'] }}</td>
-                                    <td class="px-4 py-2 text-sm text-right text-gray-800">
+                                    <td class="px-4 py-2 text-sm text-center text-gray-800">{{ $loop->iteration }}</td>
+                                    <td class="px-4 py-2 text-sm text-center text-gray-800">{{ $expense['category'] }}</td>
+                                    <td class="px-4 py-2 text-sm text-center text-gray-800">
                                         {{ number_format($expense['total'], 2) }}
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="2" class="px-4 py-3 text-sm text-center text-gray-500">
+                                    <td colspan="3" class="px-4 py-3 text-sm text-center text-gray-500">
                                         No expenses recorded in this period.
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
-                        <tfoot>
-                            <tr class="bg-gray-100 border-t-2 border-gray-300">
-                                <td class="px-4 py-2 text-sm font-semibold text-gray-800">Total Expenses</td>
-                                <td class="px-4 py-2 text-sm font-bold text-right text-gray-900">
-                                    {{ number_format($expenseGrandTotal, 2) }}
-                                </td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
             </div>
 
+            {{-- Total expense summary --}}
+            <div class="flex items-center justify-between p-4 mb-6 text-white bg-orange-500 rounded shadow">
+                <span class="text-sm font-semibold sm:text-base">Total Expense</span>
+                <span class="text-sm font-bold sm:text-base">
+                    {{ number_format($expenseGrandTotal, 2) }}
+                </span>
+            </div>
+
             {{-- Final net profit --}}
             <div class="flex items-center justify-between p-4 text-white bg-blue-600 rounded shadow">
-                <span class="text-sm font-semibold sm:text-base">Net Site Admin Profit</span>
+                <span class="text-sm font-semibold sm:text-base">Summary Net Profit</span>
                 <span class="text-lg font-bold sm:text-xl">{{ number_format($netProfit, 2) }}</span>
             </div>
         @endif

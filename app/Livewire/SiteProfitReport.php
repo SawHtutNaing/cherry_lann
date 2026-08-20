@@ -35,8 +35,8 @@ class SiteProfitReport extends Component
 
     public function mount()
     {
-        $this->startDate = now()->startOfMonth()->format('Y-m-d');
-        $this->endDate = now()->format('Y-m-d');
+        $this->startDate = '2027-01-01';
+        $this->endDate = '2029-01-01';
     }
 
     protected function rules()
@@ -60,7 +60,8 @@ class SiteProfitReport extends Component
         $this->expenseGrandTotal = 0;
         $this->netProfit = 0;
 
-        $serviceTypes = ServiceType::with('boostTypes')->orderBy('name')->get();
+        // Sorted by sort_no now instead of name
+        $serviceTypes = ServiceType::with('boostTypes')->orderBy('sort_no')->get();
 
         $allBoostTypeIds = $serviceTypes->pluck('boostTypes')->flatten()->pluck('id')->unique()->values()->toArray();
 
@@ -172,6 +173,7 @@ class SiteProfitReport extends Component
             $subtotals = [
                 'line_total' => 0,
                 'discount' => 0,
+                'discount_mmk' => 0,
                 'revenue' => 0,
                 'employee_profit' => 0,
                 'my_profit' => 0,
@@ -182,6 +184,7 @@ class SiteProfitReport extends Component
 
                 $lineTotal = 0;
                 $discount = 0;
+                $discountMmk = 0;
                 $revenue = 0;
                 $employeeProfit = 0;
 
@@ -193,6 +196,7 @@ class SiteProfitReport extends Component
                         $discount += (float) $item->discount;
                         $rate = $this->matchExchangeRate($exchangeLogs, $item->start_date);
                         $revenue += (float) $item->amount * (float) $rate->amount;
+                        $discountMmk += (float) $item->discount * (float) $rate->amount;
                     }
 
                     $log = $this->matchProfitLog($profitLogs, $userId, $item->boost_type_id, $item->start_date);
@@ -213,6 +217,7 @@ class SiteProfitReport extends Component
                     'boost_type_name' => $boostType->name,
                     'line_total' => $lineTotal,
                     'discount' => $discount,
+                    'discount_mmk' => $discountMmk,
                     'revenue' => $revenue,
                     'employee_profit' => $employeeProfit,
                     'my_profit' => $myProfit,
@@ -220,6 +225,7 @@ class SiteProfitReport extends Component
 
                 $subtotals['line_total'] += $lineTotal;
                 $subtotals['discount'] += $discount;
+                $subtotals['discount_mmk'] += $discountMmk;
                 $subtotals['revenue'] += $revenue;
                 $subtotals['employee_profit'] += $employeeProfit;
                 $subtotals['my_profit'] += $myProfit;
@@ -260,7 +266,8 @@ class SiteProfitReport extends Component
             $expenseGrandTotal += $categoryTotal;
         }
 
-        $this->expenseRows = collect($expenseRows)->sortBy('category')->values()->toArray();
+        // Sorted descending by amount (largest to smallest)
+        $this->expenseRows = collect($expenseRows)->sortByDesc('total')->values()->toArray();
         $this->expenseGrandTotal = $expenseGrandTotal;
 
         $this->netProfit = $this->grandProfitTotal - $this->expenseGrandTotal;
@@ -283,6 +290,78 @@ class SiteProfitReport extends Component
                 && $log->from_date <= $date
                 && (is_null($log->to_date) || $log->to_date >= $date);
         });
+    }
+
+    /**
+     * Export the currently generated report as a CSV file
+     * (opens natively in Excel).
+     */
+    public function exportExcel()
+    {
+        if (!$this->hasGenerated) {
+            return;
+        }
+
+        $filename = 'site-profit-report_' . $this->startDate . '_to_' . $this->endDate . '.csv';
+
+        return response()->streamDownload(function () {
+            $handle = fopen('php://output', 'w');
+
+            // UTF-8 BOM so Excel renders Myanmar/unicode text correctly
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            fputcsv($handle, ['Site Profit Report']);
+            fputcsv($handle, ['Period', $this->startDate . ' to ' . $this->endDate]);
+            fputcsv($handle, []);
+
+            foreach ($this->serviceTypeGroups as $group) {
+                fputcsv($handle, [$group['service_type_name'] . ' (' . $group['type'] . ')']);
+                fputcsv($handle, ['No', 'Boost Type', 'Line Total', 'Discount', 'Discount (MMK)', 'Revenue', 'E_Profit', 'M_Profit']);
+
+                foreach ($group['rows'] as $i => $row) {
+                    $isDollar = $group['type'] === 'dollar';
+                    fputcsv($handle, [
+                        $i + 1,
+                        $row['boost_type_name'],
+                        number_format($row['line_total'], 2, '.', ''),
+                        $isDollar ? number_format($row['discount'], 2, '.', '') : '-',
+                        $isDollar ? number_format($row['discount_mmk'], 2, '.', '') : '-',
+                        $isDollar ? number_format($row['revenue'], 2, '.', '') : '-',
+                        number_format($row['employee_profit'], 2, '.', ''),
+                        number_format($row['my_profit'], 2, '.', ''),
+                    ]);
+                }
+
+                fputcsv($handle, [
+                    'Subtotal',
+                    '',
+                    number_format($group['subtotals']['line_total'], 2, '.', ''),
+                    $group['type'] === 'dollar' ? number_format($group['subtotals']['discount'], 2, '.', '') : '-',
+                    $group['type'] === 'dollar' ? number_format($group['subtotals']['discount_mmk'], 2, '.', '') : '-',
+                    $group['type'] === 'dollar' ? number_format($group['subtotals']['revenue'], 2, '.', '') : '-',
+                    number_format($group['subtotals']['employee_profit'], 2, '.', ''),
+                    number_format($group['subtotals']['my_profit'], 2, '.', ''),
+                ]);
+                fputcsv($handle, []);
+            }
+
+            fputcsv($handle, ['Before Expense', number_format($this->grandProfitTotal, 2, '.', '')]);
+            fputcsv($handle, []);
+
+            fputcsv($handle, ['Expenses']);
+            fputcsv($handle, ['Category', 'Total']);
+            foreach ($this->expenseRows as $expense) {
+                fputcsv($handle, [$expense['category'], number_format($expense['total'], 2, '.', '')]);
+            }
+            fputcsv($handle, ['Total Expense', number_format($this->expenseGrandTotal, 2, '.', '')]);
+            fputcsv($handle, []);
+
+            fputcsv($handle, ['Summary Net Profit', number_format($this->netProfit, 2, '.', '')]);
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 
     public function render()

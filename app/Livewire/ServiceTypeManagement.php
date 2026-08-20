@@ -58,7 +58,9 @@ class ServiceTypeManagement extends Component
 
     public function loadServiceTypes()
     {
-        $this->serviceTypes = ServiceType::with('boostTypes')->get();
+        $this->serviceTypes = ServiceType::with('boostTypes')
+            ->orderBy('sort_no')
+            ->get();
     }
 
     // ---------- Service Type CRUD ----------
@@ -94,10 +96,11 @@ class ServiceTypeManagement extends Component
         if ($this->serviceTypeId) {
             $serviceType = ServiceType::findOrFail($this->serviceTypeId);
             $serviceType->update($data);
-            session()->flash('message', 'Service Type updated successfully.');
+            session()->flash('message', 'Service Group updated successfully.');
         } else {
+            $data['sort_no'] = (ServiceType::max('sort_no') ?? 0) + 1;
             $serviceType = ServiceType::create($data);
-            session()->flash('message', 'Service Type created successfully.');
+            session()->flash('message', 'Service Group created successfully.');
         }
 
         $serviceType->boostTypes()->sync($this->selectedBoostTypes);
@@ -111,7 +114,7 @@ class ServiceTypeManagement extends Component
         try {
             ServiceType::findOrFail($serviceTypeId)->delete();
             $this->loadServiceTypes();
-            session()->flash('message', 'Service Type deleted successfully.');
+            session()->flash('message', 'Service Group deleted successfully.');
         } catch (\Exception $e) {
             session()->flash('error', 'An error occurred while deleting the Service Type.');
         }
@@ -124,6 +127,17 @@ class ServiceTypeManagement extends Component
         $this->type = 'mmk';
         $this->selectedBoostTypes = [];
         $this->resetErrorBag();
+    }
+
+    // ---------- Sorting ----------
+
+    public function updateOrder($orderedIds)
+    {
+        foreach ($orderedIds as $index => $id) {
+            ServiceType::where('id', $id)->update(['sort_no' => $index + 1]);
+        }
+
+        $this->loadServiceTypes();
     }
 
     // ---------- Exchange Rate Log CRUD ----------
@@ -215,4 +229,42 @@ class ServiceTypeManagement extends Component
             'serviceTypes' => $this->serviceTypes,
         ]);
     }
+
+    // ---------- Sorting ----------
+
+public function moveUp($serviceTypeId)
+{
+    $current = ServiceType::findOrFail($serviceTypeId);
+
+    $previous = ServiceType::where('sort_no', '<', $current->sort_no)
+        ->orderByDesc('sort_no')
+        ->first();
+
+    if ($previous) {
+        $currentSort = $current->sort_no;
+        $current->update(['sort_no' => $previous->sort_no]);
+        $previous->update(['sort_no' => $currentSort]);
+    }
+
+    $this->loadServiceTypes();
+}
+
+public function moveDown($serviceTypeId)
+{
+    $current = ServiceType::findOrFail($serviceTypeId);
+
+    $next = ServiceType::where('sort_no', '>', $current->sort_no)
+        ->orderBy('sort_no')
+        ->first();
+
+    if ($next) {
+        $currentSort = $current->sort_no;
+        $current->update(['sort_no' => $next->sort_no]);
+        $next->update(['sort_no' => $currentSort]);
+    }
+
+    $this->loadServiceTypes();
+}
+
+
 }
