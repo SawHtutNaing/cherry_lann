@@ -33,12 +33,11 @@ class SiteProfitReport extends Component
 
     public $netProfit = 0;
 
-    public function mount()
+       public function mount()
     {
-        $this->startDate = '2027-01-01';
-        $this->endDate = '2029-01-01';
+        $this->startDate = now()->startOfMonth()->format('Y-m-d');
+        $this->endDate = now()->format('Y-m-d');
     }
-
     protected function rules()
     {
         return [
