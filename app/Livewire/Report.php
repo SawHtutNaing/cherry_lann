@@ -31,6 +31,7 @@ class Report extends Component
     public $overall_total = 0;
     public $totalCount = 0;
     public $cus_name_search;
+    public $days_count;   // NEW — "Days ≥" filter
 
     public function mount()
     {
@@ -44,7 +45,6 @@ class Report extends Component
     private function baseQuery()
     {
         return DataInput::query()
-            // start_date now lives on the items table, so filter through the relation
             ->when($this->startDate && $this->endDate, function ($q) {
                 $q->whereHas('items', function ($iq) {
                     $iq->whereBetween('start_date', [$this->startDate, $this->endDate]);
@@ -53,7 +53,6 @@ class Report extends Component
             ->when($this->service_by, function ($q) {
                 $q->where('user_id', $this->service_by);
             })
-            // boost_type_id now lives on the items table too
             ->when(!empty($this->boosttype), function ($q) {
                 $q->whereHas('items', function ($iq) {
                     $iq->whereIn('boost_type_id', $this->boosttype);
@@ -64,6 +63,10 @@ class Report extends Component
             })
             ->when($this->status_at, function ($q) {
                 $q->where('status', $this->status_at);
+            })
+            // NEW — days-since-created filter, same as the dashboard controller
+            ->when($this->days_count !== null && $this->days_count !== '', function ($q) {
+                $q->whereRaw('DATEDIFF(CURDATE(), created_at) >= ?', [(int) $this->days_count]);
             });
     }
 
@@ -73,8 +76,6 @@ class Report extends Component
 
         $this->totalCount = (clone $query)->count();
 
-        // total_amount is the header-level rollup of all items, so we
-        // aggregate on it directly instead of the old per-line `amount` column
         $agg = (clone $query)->selectRaw('
             COALESCE(SUM(CASE WHEN status = 1 THEN total_amount END), 0) as charges,
             COALESCE(SUM(CASE WHEN status = 2 THEN total_amount END), 0) as refund,
@@ -95,7 +96,7 @@ class Report extends Component
 
     public function updated($property)
     {
-        if (in_array($property, ['cus_name_search', 'startDate', 'endDate', 'service_by', 'boosttype', 'status_at'])) {
+        if (in_array($property, ['cus_name_search', 'startDate', 'endDate', 'service_by', 'boosttype', 'status_at', 'days_count'])) {
             $this->resetPage();
         }
     }
@@ -106,9 +107,6 @@ class Report extends Component
             ini_set('memory_limit', '1024M');
             set_time_limit(300);
 
-            // Aggregates (charges/refund/pending/overall) must reflect the
-            // full filtered set, not just whatever the live paginated page
-            // last computed, so refresh them right before exporting.
             $this->updateAggregates();
 
             $exportData = $this->baseQuery()
@@ -136,7 +134,7 @@ class Report extends Component
         $this->updateAggregates();
 
         $dataInputs = $this->baseQuery()
-            ->with(['user', 'items.boostType'])
+            ->with(['user', 'items.boostType', 'clientImages', 'serviceImages'])
             ->orderByDesc('created_at')
             ->paginate(25);
 

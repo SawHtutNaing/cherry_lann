@@ -13,7 +13,7 @@
                 <span wire:loading wire:target="reprotExcel">Exporting… please wait</span>
             </button>
 
-            <div class="flex flex-col justify-start mt-6 space-y-6 md:flex-row md:space-y-0 md:space-x-6">
+            <div class="flex flex-col justify-start mt-6 space-y-6 md:flex-row md:flex-wrap md:space-y-0 md:space-x-6 md:gap-y-6">
 
                 <div class="w-full md:w-1/4">
                     <label for="cus_name_search" class="block text-sm font-medium text-gray-700">Cus Name Search</label>
@@ -30,6 +30,13 @@
                 <div class="w-full md:w-1/4">
                     <label for="end_date" class="block text-sm font-medium text-gray-700">End Date</label>
                     <input type="date" id="end_date" wire:model='endDate'
+                        class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                {{-- NEW — Days ≥ filter, mirrors the dashboard's days_count filter --}}
+                <div class="w-full md:w-1/4">
+                    <label for="days_count" class="block text-sm font-medium text-gray-700">Days ≥</label>
+                    <input type="number" id="days_count" min="0" wire:model="days_count" placeholder="e.g. 7"
                         class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
 
@@ -130,8 +137,6 @@
         </thead>
         <tbody>
             <tr class="border-b">
-                {{-- $totalCount only exists on the live (paginated) page; on export
-                     $dataInputs is a plain collection so we fall back to ->count() --}}
                 <td class="px-6 py-4 text-sm text-gray-800">{{ $isExport ? $dataInputs->count() : $totalCount }}</td>
                 <td class="px-6 py-4 text-sm text-gray-800">{{ $charges }}</td>
                 <td class="px-6 py-4 text-sm text-gray-800">{{ $refund }}</td>
@@ -151,13 +156,14 @@
                 <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Serviced By</th>
                 <th class="px-6 py-3 text-sm font-bold text-center text-gray-600 min-w-[280px]">Items</th>
                 <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Total Amount</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Days</th>
                 <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Status</th>
 @if ($isExport)
                 <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Remark</th>
 @endif
 @if (!$isExport)
-                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Client Image</th>
-                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Cherry Lann Image</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600 w-[150px]">Client Image</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600 w-[150px]">Cherry Lann Image</th>
 @endif
             </tr>
         </thead>
@@ -171,7 +177,6 @@
                     <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->customer_name }}</td>
                     <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->user->name ?? 'N/A' }}</td>
 
-                    {{-- Items --}}
                     <td class="px-6 py-4">
                         <div class="rounded-md border border-gray-200 divide-y divide-gray-100 overflow-hidden">
                             @forelse ($dataInput->items as $item)
@@ -196,6 +201,17 @@
                     </td>
 
                     <td class="px-6 py-4 text-sm font-semibold text-gray-800">{{ number_format($dataInput->total_amount) }}</td>
+
+                    {{-- NEW — Days column, same color-coded badge as the dashboard --}}
+                    <td class="px-6 py-4 text-sm text-center">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+                            @if($dataInput->status->name == 'Charge') bg-green-100 text-green-700
+                            @elseif($dataInput->status->name == 'Refund') bg-red-100 text-red-700
+                            @else bg-amber-100 text-amber-700 @endif">
+                            {{ \Carbon\Carbon::parse($dataInput->created_at)->diffInDays(now()) }}d
+                        </span>
+                    </td>
+
                     <td class="px-6 py-4 text-sm {{ $dataInput->status->name == 'Charge' ? 'text-green-600' : 'text-red-600' }}">
                         {{ $dataInput->status->label() }}
                     </td>
@@ -204,33 +220,53 @@
                     <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->remark }}</td>
 @endif
 @if (!$isExport)
-                    {{-- Client Image --}}
-                    <td class="px-6 py-4 text-sm text-gray-800">
-                        <div id="report-images-{{ $dataInput->id }}" class="inline-block">
-                            @if($dataInput->client_side_image)
-                                <img src="{{ Storage::disk('public')->url($dataInput->client_side_image) }}"
-                                     data-role="client"
-                                     class="w-16 h-16 object-cover rounded cursor-pointer border border-gray-200 hover:opacity-80 transition"
-                                     onclick="openReportImageModal(this.src, 'report-images-{{ $dataInput->id }}')"
-                                     title="Click to preview">
-                            @else
-                                <span class="text-xs text-gray-400 italic">No image</span>
-                            @endif
+                    {{-- Client Images — dashboard-style gallery (multi-image, add/delete/preview) --}}
+                    <td class="px-6 py-4">
+                        <div id="report-gallery-client-{{ $dataInput->id }}">
+                            <div class="flex flex-wrap gap-1 justify-center mb-1.5" id="report-images-client-{{ $dataInput->id }}">
+                                @forelse ($dataInput->clientImages as $image)
+                                    <div class="relative" id="report-image-{{ $image->id }}">
+                                        <img src="{{ $image->url }}"
+                                             class="w-12 h-12 object-cover rounded-lg cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity"
+                                             onclick="openReportImageModal('{{ $image->url }}', 'report-images-client-{{ $dataInput->id }}')">
+                                        <button type="button" onclick="confirmDeleteReportImage({{ $dataInput->id }}, {{ $image->id }})"
+                                            class="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center text-[10px] text-white bg-red-500 rounded-full shadow hover:bg-red-600">
+                                            ✕
+                                        </button>
+                                    </div>
+                                @empty
+                                    <span class="text-xs text-gray-400 italic">No images</span>
+                                @endforelse
+                            </div>
+                            <button type="button" onclick="triggerReportUpload({{ $dataInput->id }}, 'client')"
+                                class="w-full inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors whitespace-nowrap">
+                                + Add
+                            </button>
                         </div>
                     </td>
 
-                    {{-- Cherry Lann / Service Image --}}
-                    <td class="px-6 py-4 text-sm text-gray-800">
-                        <div id="report-images-service-{{ $dataInput->id }}" class="inline-block">
-                            @if($dataInput->service_side_image)
-                                <img src="{{ Storage::disk('public')->url($dataInput->service_side_image) }}"
-                                     data-role="service"
-                                     class="w-16 h-16 object-cover rounded cursor-pointer border border-gray-200 hover:opacity-80 transition"
-                                     onclick="openReportImageModal(this.src, 'report-images-{{ $dataInput->id }}')"
-                                     title="Click to preview">
-                            @else
-                                <span class="text-xs text-gray-400 italic">No image</span>
-                            @endif
+                    {{-- Cherry Lann / Service Images --}}
+                    <td class="px-6 py-4">
+                        <div id="report-gallery-service-{{ $dataInput->id }}">
+                            <div class="flex flex-wrap gap-1 justify-center mb-1.5" id="report-images-service-{{ $dataInput->id }}">
+                                @forelse ($dataInput->serviceImages as $image)
+                                    <div class="relative" id="report-image-{{ $image->id }}">
+                                        <img src="{{ $image->url }}"
+                                             class="w-12 h-12 object-cover rounded-lg cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity"
+                                             onclick="openReportImageModal('{{ $image->url }}', 'report-images-service-{{ $dataInput->id }}')">
+                                        <button type="button" onclick="confirmDeleteReportImage({{ $dataInput->id }}, {{ $image->id }})"
+                                            class="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center text-[10px] text-white bg-red-500 rounded-full shadow hover:bg-red-600">
+                                            ✕
+                                        </button>
+                                    </div>
+                                @empty
+                                    <span class="text-xs text-gray-400 italic">No images</span>
+                                @endforelse
+                            </div>
+                            <button type="button" onclick="triggerReportUpload({{ $dataInput->id }}, 'service')"
+                                class="w-full inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors whitespace-nowrap">
+                                + Add
+                            </button>
                         </div>
                     </td>
 @endif
@@ -241,7 +277,6 @@
 </div>
 
     @if (!$isExport)
-        {{-- Real pagination instead of dumping every row into the DOM at once --}}
         <div class="mt-4">
             {{ $dataInputs->links() }}
         </div>
@@ -249,7 +284,35 @@
 
     @if (!$isExport)
 
-    {{-- Image Preview Modal — with gallery navigation between Client / Cherry Lann images --}}
+    {{-- Hidden file input for report gallery uploads --}}
+    <input type="file" id="reportImageFileInput" accept="image/*" multiple class="hidden">
+
+    {{-- Delete Image Confirmation Modal --}}
+    <div id="reportDeleteConfirmModal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center px-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs">
+            <div class="flex items-start gap-3 mb-4">
+                <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6"/></svg>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-gray-800">Delete Image?</p>
+                    <p class="text-xs text-gray-500 mt-0.5">This cannot be undone.</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="cancelDeleteReportImage()"
+                        class="flex-1 inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 active:scale-95 transition-all">
+                    Cancel
+                </button>
+                <button onclick="executeDeleteReportImage()"
+                        class="flex-1 inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white bg-red-500 rounded-xl hover:bg-red-600 active:scale-95 transition-all">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Image Preview Modal — with gallery navigation, same style as dashboard --}}
     <div id="reportImageModal" class="img-modal-overlay">
         <button type="button" onclick="closeReportImageModal()" class="img-modal-close-btn" aria-label="Close">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -267,13 +330,12 @@
         </button>
 
         <div class="img-modal-footer">
-            <span id="reportImageModalLabel" class="img-modal-counter"></span>
+            <span id="reportImageModalCounter" class="img-modal-counter"></span>
             <p class="img-modal-hint">Use ← → to navigate · Tap outside or press Esc to close</p>
         </div>
     </div>
 
     <style>
-        /* ── Gallery Image Modal — vanilla CSS ─────────────────────────────── */
         .img-modal-overlay {
             display: none;
             position: fixed;
@@ -285,9 +347,7 @@
             justify-content: center;
             padding: 1rem;
         }
-        .img-modal-overlay.is-open {
-            display: flex;
-        }
+        .img-modal-overlay.is-open { display: flex; }
         .img-modal-image {
             max-width: 100%;
             max-height: 78vh;
@@ -317,7 +377,6 @@
         }
         .img-modal-close-btn:hover { background: #f3f4f6; }
         .img-modal-close-btn:active { transform: scale(0.95); }
-
         .img-modal-nav-btn {
             position: absolute;
             top: 50%;
@@ -339,16 +398,13 @@
         .img-modal-nav-btn:hover { background: rgba(255, 255, 255, 0.25); }
         .img-modal-nav-btn:active { transform: translateY(-50%) scale(0.92); }
         .img-modal-nav-btn.is-hidden { display: none; }
-
         .img-modal-nav-left  { left: 0.75rem; }
         .img-modal-nav-right { right: 0.75rem; }
-
         @media (min-width: 640px) {
             .img-modal-nav-left  { left: 1.5rem; }
             .img-modal-nav-right { right: 1.5rem; }
             .img-modal-nav-btn { width: 3.5rem; height: 3.5rem; }
         }
-
         .img-modal-footer {
             margin-top: 0.75rem;
             display: flex;
@@ -374,36 +430,100 @@
     </style>
 
     <script>
-        // ── Gallery image modal (vanilla JS) ───────────────────────────────
-        // Groups Client + Cherry Lann images for the same row so you can
-        // flip between them with the prev/next buttons or arrow keys.
+        // ── Report gallery: upload / delete / preview — mirrors the dashboard ──
+        let reportCurrentUploadId   = null;
+        let reportCurrentUploadType = null;
+        let reportPendingDataInputId = null;
+        let reportPendingImageId     = null;
+
+        const reportFileInput = document.getElementById('reportImageFileInput');
+        const reportCsrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        function triggerReportUpload(id, type) {
+            reportCurrentUploadId   = id;
+            reportCurrentUploadType = type;
+            reportFileInput.value   = '';
+            reportFileInput.click();
+        }
+
+        reportFileInput.addEventListener('change', function () {
+            if (!this.files.length) return;
+
+            const formData = new FormData();
+            for (const file of this.files) {
+                formData.append('images[]', file);
+            }
+
+            fetch(`/data-inputs/${reportCurrentUploadId}/images/${reportCurrentUploadType}`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': reportCsrfToken },
+                body: formData,
+            })
+            .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+            .then(d => {
+                const groupId = `report-images-${reportCurrentUploadType}-${reportCurrentUploadId}`;
+                const container = document.getElementById(groupId);
+                if (!container) return;
+                container.querySelectorAll('span.italic').forEach(el => el.remove());
+                d.images.forEach(img => {
+                    container.insertAdjacentHTML('beforeend', buildReportImageThumb(reportCurrentUploadId, img.id, img.url, groupId));
+                });
+            })
+            .catch(() => showReportToast('Upload failed. Please try again.', 'error'));
+        });
+
+        function buildReportImageThumb(dataInputId, imageId, url, groupId) {
+            return `<div class="relative" id="report-image-${imageId}">
+                <img src="${url}" class="w-12 h-12 object-cover rounded-lg cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity" onclick="openReportImageModal('${url}', '${groupId}')">
+                <button type="button" onclick="confirmDeleteReportImage(${dataInputId}, ${imageId})" class="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center text-[10px] text-white bg-red-500 rounded-full shadow hover:bg-red-600">✕</button>
+            </div>`;
+        }
+
+        function confirmDeleteReportImage(dataInputId, imageId) {
+            reportPendingDataInputId = dataInputId;
+            reportPendingImageId     = imageId;
+            document.getElementById('reportDeleteConfirmModal').classList.remove('hidden');
+        }
+        function cancelDeleteReportImage() {
+            reportPendingDataInputId = reportPendingImageId = null;
+            document.getElementById('reportDeleteConfirmModal').classList.add('hidden');
+        }
+        function executeDeleteReportImage() {
+            const dataInputId = reportPendingDataInputId, imageId = reportPendingImageId;
+            document.getElementById('reportDeleteConfirmModal').classList.add('hidden');
+            if (!dataInputId || !imageId) return;
+
+            fetch(`/data-inputs/${dataInputId}/images/${imageId}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': reportCsrfToken },
+            })
+            .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+            .then(() => {
+                document.querySelectorAll(`[id="report-image-${imageId}"]`).forEach(el => el.remove());
+                showReportToast('Image deleted.');
+            })
+            .catch(() => showReportToast('Delete failed.', 'error'))
+            .finally(() => { reportPendingDataInputId = reportPendingImageId = null; });
+        }
+
+        document.getElementById('reportDeleteConfirmModal').addEventListener('click', e => { if (e.target === e.currentTarget) cancelDeleteReportImage(); });
+
+        // ── Gallery image modal (per type, same behavior as dashboard) ──
         let reportModalImages = [];
         let reportModalIndex  = 0;
 
-        function openReportImageModal(src, rowId) {
+        function openReportImageModal(src, groupId) {
             reportModalImages = [];
 
-            // Both the "client" container (report-images-{id}) and the
-            // "service" container (report-images-service-{id}) share the
-            // same numeric row id, so pull images from both.
-            const clientContainer  = document.getElementById(rowId);
-            const serviceContainer = document.getElementById(rowId.replace('report-images-', 'report-images-service-'));
-
-            [clientContainer, serviceContainer].forEach(container => {
-                if (!container) return;
-                container.querySelectorAll('img').forEach(img => {
-                    reportModalImages.push({
-                        src: img.getAttribute('src'),
-                        label: img.dataset.role === 'service' ? 'Cherry Lann' : 'Client',
-                    });
-                });
-            });
-
+            const container = groupId ? document.getElementById(groupId) : null;
+            if (container) {
+                container.querySelectorAll('img').forEach(img => reportModalImages.push(img.getAttribute('src')));
+            }
             if (!reportModalImages.length) {
-                reportModalImages = [{ src: src, label: '' }];
+                reportModalImages = [src];
             }
 
-            reportModalIndex = reportModalImages.findIndex(i => i.src === src);
+            reportModalIndex = reportModalImages.indexOf(src);
             if (reportModalIndex === -1) reportModalIndex = 0;
 
             updateReportModalImage();
@@ -412,27 +532,19 @@
         }
 
         function updateReportModalImage() {
-            const current = reportModalImages[reportModalIndex];
-            document.getElementById('reportImageModalImg').src = current.src;
+            document.getElementById('reportImageModalImg').src = reportModalImages[reportModalIndex];
 
-            const label = document.getElementById('reportImageModalLabel');
+            const counter = document.getElementById('reportImageModalCounter');
             const prevBtn = document.getElementById('reportImageModalPrev');
             const nextBtn = document.getElementById('reportImageModalNext');
 
             if (reportModalImages.length > 1) {
-                label.textContent = current.label
-                    ? `${current.label} (${reportModalIndex + 1} / ${reportModalImages.length})`
-                    : `${reportModalIndex + 1} / ${reportModalImages.length}`;
-                label.classList.add('is-visible');
+                counter.textContent = `${reportModalIndex + 1} / ${reportModalImages.length}`;
+                counter.classList.add('is-visible');
                 prevBtn.classList.remove('is-hidden');
                 nextBtn.classList.remove('is-hidden');
             } else {
-                if (current.label) {
-                    label.textContent = current.label;
-                    label.classList.add('is-visible');
-                } else {
-                    label.classList.remove('is-visible');
-                }
+                counter.classList.remove('is-visible');
                 prevBtn.classList.add('is-hidden');
                 nextBtn.classList.add('is-hidden');
             }
@@ -464,12 +576,23 @@
             if (e.target === e.currentTarget) closeReportImageModal();
         });
 
-        document.addEventListener('keydown', function (e) {
-            if (!document.getElementById('reportImageModal').classList.contains('is-open')) return;
-            if (e.key === 'ArrowLeft') showPrevReportImage();
-            if (e.key === 'ArrowRight') showNextReportImage();
-            if (e.key === 'Escape') closeReportImageModal();
+        document.addEventListener('keydown', e => {
+            const modalOpen = document.getElementById('reportImageModal').classList.contains('is-open');
+            if (modalOpen) {
+                if (e.key === 'ArrowLeft') showPrevReportImage();
+                if (e.key === 'ArrowRight') showNextReportImage();
+                if (e.key === 'Escape') closeReportImageModal();
+            }
+            if (e.key === 'Escape') cancelDeleteReportImage();
         });
+
+        function showReportToast(message, type = 'success') {
+            const t = document.createElement('div');
+            t.className = `fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 text-white text-sm font-semibold rounded-xl shadow-xl ${type === 'success' ? 'bg-emerald-500' : 'bg-red-500'} transition-all duration-300`;
+            t.textContent = message;
+            document.body.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translate(-50%, 8px)'; setTimeout(() => t.remove(), 300); }, 2800);
+        }
 
         document.addEventListener('livewire:init', () => {
             Livewire.on('excel-ready', ({ url }) => {
