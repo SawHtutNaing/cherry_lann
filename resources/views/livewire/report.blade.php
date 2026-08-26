@@ -208,7 +208,7 @@
                             @if($dataInput->status->name == 'Charge') bg-green-100 text-green-700
                             @elseif($dataInput->status->name == 'Refund') bg-red-100 text-red-700
                             @else bg-amber-100 text-amber-700 @endif">
-                            {{ \Carbon\Carbon::parse($dataInput->created_at)->diffInDays(now()) }}d
+                            {{ (int) floor(\Carbon\Carbon::parse($dataInput->created_at)->diffInHours(now()) / 24) }}d
                         </span>
                     </td>
 

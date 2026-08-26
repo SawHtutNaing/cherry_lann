@@ -1,3 +1,4 @@
+
 <x-app-layout>
 <div class="container mx-auto mt-4 px-3 sm:px-4">
 
@@ -114,7 +115,7 @@
                             @else bg-amber-100 text-amber-700 @endif">
                             {{ $dataInput->status->label() }}
                         </span>
-                        <span class="text-[10px] font-medium text-gray-400">{{ \Carbon\Carbon::parse($dataInput->created_at)->diffInDays(now()) }}d</span>
+                        <span class="text-[10px] font-medium text-gray-400">{{ (int) floor(\Carbon\Carbon::parse($dataInput->created_at)->diffInHours(now()) / 24) }}d</span>
                     </div>
                 </div>
 
@@ -316,7 +317,7 @@
         @if($dataInput->status->name == 'Charge') bg-green-100 text-green-700
         @elseif($dataInput->status->name == 'Refund') bg-red-100 text-red-700
         @else bg-amber-100 text-amber-700 @endif">
-        {{ \Carbon\Carbon::parse($dataInput->created_at)->diffInDays(now()) }}d
+        {{ (int) floor(\Carbon\Carbon::parse($dataInput->created_at)->diffInHours(now()) / 24) }}d
     </span>
 </td>
 
