@@ -206,26 +206,32 @@
 @if (!$isExport)
                     {{-- Client Image --}}
                     <td class="px-6 py-4 text-sm text-gray-800">
-                        @if($dataInput->client_side_image)
-                            <img src="{{ Storage::disk('public')->url($dataInput->client_side_image) }}"
-                                 class="w-16 h-16 object-cover rounded cursor-pointer border border-gray-200 hover:opacity-80 transition"
-                                 onclick="openReportImageModal(this.src)"
-                                 title="Click to preview">
-                        @else
-                            <span class="text-xs text-gray-400 italic">No image</span>
-                        @endif
+                        <div id="report-images-{{ $dataInput->id }}" class="inline-block">
+                            @if($dataInput->client_side_image)
+                                <img src="{{ Storage::disk('public')->url($dataInput->client_side_image) }}"
+                                     data-role="client"
+                                     class="w-16 h-16 object-cover rounded cursor-pointer border border-gray-200 hover:opacity-80 transition"
+                                     onclick="openReportImageModal(this.src, 'report-images-{{ $dataInput->id }}')"
+                                     title="Click to preview">
+                            @else
+                                <span class="text-xs text-gray-400 italic">No image</span>
+                            @endif
+                        </div>
                     </td>
 
                     {{-- Cherry Lann / Service Image --}}
                     <td class="px-6 py-4 text-sm text-gray-800">
-                        @if($dataInput->service_side_image)
-                            <img src="{{ Storage::disk('public')->url($dataInput->service_side_image) }}"
-                                 class="w-16 h-16 object-cover rounded cursor-pointer border border-gray-200 hover:opacity-80 transition"
-                                 onclick="openReportImageModal(this.src)"
-                                 title="Click to preview">
-                        @else
-                            <span class="text-xs text-gray-400 italic">No image</span>
-                        @endif
+                        <div id="report-images-service-{{ $dataInput->id }}" class="inline-block">
+                            @if($dataInput->service_side_image)
+                                <img src="{{ Storage::disk('public')->url($dataInput->service_side_image) }}"
+                                     data-role="service"
+                                     class="w-16 h-16 object-cover rounded cursor-pointer border border-gray-200 hover:opacity-80 transition"
+                                     onclick="openReportImageModal(this.src, 'report-images-{{ $dataInput->id }}')"
+                                     title="Click to preview">
+                            @else
+                                <span class="text-xs text-gray-400 italic">No image</span>
+                            @endif
+                        </div>
                     </td>
 @endif
                 </tr>
@@ -243,35 +249,227 @@
 
     @if (!$isExport)
 
-    {{-- Image Preview Modal --}}
-    <div id="reportImageModal"
-         class="fixed inset-0 bg-black bg-opacity-90 hidden z-50 flex flex-col items-center justify-center px-4"
-         onclick="closeReportImageModal()">
-        <button onclick="closeReportImageModal(); event.stopPropagation();"
-                class="absolute top-4 right-4 z-10 flex items-center gap-1 px-4 py-2 bg-white text-gray-800 text-sm font-medium rounded-full shadow-lg hover:bg-gray-100 transition">
-            ✕ Close
+    {{-- Image Preview Modal — with gallery navigation between Client / Cherry Lann images --}}
+    <div id="reportImageModal" class="img-modal-overlay">
+        <button type="button" onclick="closeReportImageModal()" class="img-modal-close-btn" aria-label="Close">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            Close
         </button>
-        <img id="reportImageModalImg" src="" class="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain">
-        <p class="mt-3 text-white text-xs opacity-60">Tap anywhere or press Close to dismiss</p>
+
+        <button type="button" id="reportImageModalPrev" onclick="showPrevReportImage(event)" class="img-modal-nav-btn img-modal-nav-left" aria-label="Previous image">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+
+        <img id="reportImageModalImg" src="" class="img-modal-image">
+
+        <button type="button" id="reportImageModalNext" onclick="showNextReportImage(event)" class="img-modal-nav-btn img-modal-nav-right" aria-label="Next image">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <div class="img-modal-footer">
+            <span id="reportImageModalLabel" class="img-modal-counter"></span>
+            <p class="img-modal-hint">Use ← → to navigate · Tap outside or press Esc to close</p>
+        </div>
     </div>
 
+    <style>
+        /* ── Gallery Image Modal — vanilla CSS ─────────────────────────────── */
+        .img-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            background: rgba(0, 0, 0, 0.92);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .img-modal-overlay.is-open {
+            display: flex;
+        }
+        .img-modal-image {
+            max-width: 100%;
+            max-height: 78vh;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            object-fit: contain;
+            user-select: none;
+        }
+        .img-modal-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 5;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 1rem;
+            background: #fff;
+            color: #1f2937;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 9999px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: background-color 0.15s, transform 0.1s;
+        }
+        .img-modal-close-btn:hover { background: #f3f4f6; }
+        .img-modal-close-btn:active { transform: scale(0.95); }
+
+        .img-modal-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 5;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            border: none;
+            border-radius: 9999px;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: background-color 0.15s, transform 0.1s;
+        }
+        .img-modal-nav-btn:hover { background: rgba(255, 255, 255, 0.25); }
+        .img-modal-nav-btn:active { transform: translateY(-50%) scale(0.92); }
+        .img-modal-nav-btn.is-hidden { display: none; }
+
+        .img-modal-nav-left  { left: 0.75rem; }
+        .img-modal-nav-right { right: 0.75rem; }
+
+        @media (min-width: 640px) {
+            .img-modal-nav-left  { left: 1.5rem; }
+            .img-modal-nav-right { right: 1.5rem; }
+            .img-modal-nav-btn { width: 3.5rem; height: 3.5rem; }
+        }
+
+        .img-modal-footer {
+            margin-top: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .img-modal-counter {
+            display: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.12);
+            padding: 0.125rem 0.625rem;
+            border-radius: 9999px;
+        }
+        .img-modal-counter.is-visible { display: inline-block; }
+        .img-modal-hint {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin: 0;
+        }
+    </style>
+
     <script>
-        function openReportImageModal(src) {
-            document.getElementById('reportImageModalImg').src = src;
-            document.getElementById('reportImageModal').classList.remove('hidden');
+        // ── Gallery image modal (vanilla JS) ───────────────────────────────
+        // Groups Client + Cherry Lann images for the same row so you can
+        // flip between them with the prev/next buttons or arrow keys.
+        let reportModalImages = [];
+        let reportModalIndex  = 0;
+
+        function openReportImageModal(src, rowId) {
+            reportModalImages = [];
+
+            // Both the "client" container (report-images-{id}) and the
+            // "service" container (report-images-service-{id}) share the
+            // same numeric row id, so pull images from both.
+            const clientContainer  = document.getElementById(rowId);
+            const serviceContainer = document.getElementById(rowId.replace('report-images-', 'report-images-service-'));
+
+            [clientContainer, serviceContainer].forEach(container => {
+                if (!container) return;
+                container.querySelectorAll('img').forEach(img => {
+                    reportModalImages.push({
+                        src: img.getAttribute('src'),
+                        label: img.dataset.role === 'service' ? 'Cherry Lann' : 'Client',
+                    });
+                });
+            });
+
+            if (!reportModalImages.length) {
+                reportModalImages = [{ src: src, label: '' }];
+            }
+
+            reportModalIndex = reportModalImages.findIndex(i => i.src === src);
+            if (reportModalIndex === -1) reportModalIndex = 0;
+
+            updateReportModalImage();
+            document.getElementById('reportImageModal').classList.add('is-open');
             document.body.style.overflow = 'hidden';
         }
 
+        function updateReportModalImage() {
+            const current = reportModalImages[reportModalIndex];
+            document.getElementById('reportImageModalImg').src = current.src;
+
+            const label = document.getElementById('reportImageModalLabel');
+            const prevBtn = document.getElementById('reportImageModalPrev');
+            const nextBtn = document.getElementById('reportImageModalNext');
+
+            if (reportModalImages.length > 1) {
+                label.textContent = current.label
+                    ? `${current.label} (${reportModalIndex + 1} / ${reportModalImages.length})`
+                    : `${reportModalIndex + 1} / ${reportModalImages.length}`;
+                label.classList.add('is-visible');
+                prevBtn.classList.remove('is-hidden');
+                nextBtn.classList.remove('is-hidden');
+            } else {
+                if (current.label) {
+                    label.textContent = current.label;
+                    label.classList.add('is-visible');
+                } else {
+                    label.classList.remove('is-visible');
+                }
+                prevBtn.classList.add('is-hidden');
+                nextBtn.classList.add('is-hidden');
+            }
+        }
+
+        function showPrevReportImage(e) {
+            if (e) e.stopPropagation();
+            if (reportModalImages.length < 2) return;
+            reportModalIndex = (reportModalIndex - 1 + reportModalImages.length) % reportModalImages.length;
+            updateReportModalImage();
+        }
+
+        function showNextReportImage(e) {
+            if (e) e.stopPropagation();
+            if (reportModalImages.length < 2) return;
+            reportModalIndex = (reportModalIndex + 1) % reportModalImages.length;
+            updateReportModalImage();
+        }
+
         function closeReportImageModal() {
-            document.getElementById('reportImageModal').classList.add('hidden');
+            document.getElementById('reportImageModal').classList.remove('is-open');
             document.getElementById('reportImageModalImg').src = '';
+            reportModalImages = [];
+            reportModalIndex = 0;
             document.body.style.overflow = '';
         }
 
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeReportImageModal();
+        document.getElementById('reportImageModal').addEventListener('click', e => {
+            if (e.target === e.currentTarget) closeReportImageModal();
         });
 
+        document.addEventListener('keydown', function (e) {
+            if (!document.getElementById('reportImageModal').classList.contains('is-open')) return;
+            if (e.key === 'ArrowLeft') showPrevReportImage();
+            if (e.key === 'ArrowRight') showNextReportImage();
+            if (e.key === 'Escape') closeReportImageModal();
+        });
 
         document.addEventListener('livewire:init', () => {
             Livewire.on('excel-ready', ({ url }) => {
