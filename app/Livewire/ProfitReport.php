@@ -29,6 +29,10 @@ class ProfitReport extends Component
     public $reportGroups = []; // one entry per selected service type
     public $grandTotals = [];  // combined totals across all selected service types
 
+    // Chart data
+    public $pieCharts = [];       // one pie (by boost type) per service group
+    public $grandTotalChart = null; // one pie (by service group) when multiple groups selected
+
     // Visa totals for the same date range / employee filter
     public $visaTotal = 0;
     public $visaBreakdown = []; // per-user breakdown, only populated when employeeFilter = 'all'
@@ -73,6 +77,8 @@ class ProfitReport extends Component
         $this->missingExchangeRates = [];
         $this->missingProfitLogs = [];
         $this->reportGroups = [];
+        $this->pieCharts = [];
+        $this->grandTotalChart = null;
         $this->visaTotal = 0;
         $this->visaBreakdown = [];
         $this->grandTotals = [
@@ -321,7 +327,32 @@ class ProfitReport extends Component
                 ->toArray();
         }
 
+        // ---- Build pie chart data ----
+        foreach ($this->reportGroups as $group) {
+            if (!empty($group['rows'])) {
+                $this->pieCharts[] = [
+                    'id' => $group['service_type_id'],
+                    'title' => $group['service_type_name'],
+                    'labels' => array_column($group['rows'], 'boost_type_name'),
+                    'data' => array_map(fn ($r) => round((float) $r['my_profit'], 2), $group['rows']),
+                ];
+            }
+        }
+
+        if (count($this->reportGroups) > 1) {
+            $groupsWithData = array_filter($this->reportGroups, fn ($g) => !empty($g['rows']));
+
+            if (!empty($groupsWithData)) {
+                $this->grandTotalChart = [
+                    'labels' => array_map(fn ($g) => $g['service_type_name'], $groupsWithData),
+                    'data' => array_map(fn ($g) => round((float) $g['totals']['my_profit'], 2), $groupsWithData),
+                ];
+            }
+        }
+
         $this->hasGenerated = true;
+
+        $this->dispatch('report-charts-updated', pieCharts: $this->pieCharts, grandTotalChart: $this->grandTotalChart);
     }
 
     /**

@@ -259,6 +259,16 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- Pie chart: My Profit breakdown by boost type, for this service group --}}
+                        <div class="p-4 mt-4 bg-white border border-gray-200 rounded shadow">
+                            <p class="mb-2 text-sm font-semibold text-center text-gray-700">
+                                My Profit Breakdown &mdash; {{ $group['service_type_name'] }}
+                            </p>
+                            <div wire:ignore class="max-w-xs mx-auto">
+                                <canvas id="pie-chart-{{ $group['service_type_id'] }}"></canvas>
+                            </div>
+                        </div>
                     @endif
                 </div>
             @endforeach
@@ -292,6 +302,18 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- Pie chart: My Profit breakdown by service group --}}
+                @if ($grandTotalChart)
+                    <div class="p-4 mt-4 bg-white border border-gray-200 rounded shadow">
+                        <p class="mb-2 text-sm font-semibold text-center text-gray-700">
+                            My Profit Breakdown &mdash; All Service Groups
+                        </p>
+                        <div wire:ignore class="max-w-xs mx-auto">
+                            <canvas id="pie-chart-grand-total"></canvas>
+                        </div>
+                    </div>
+                @endif
             @endif
 
             {{-- Visa Total (plain red text, right under the totals) --}}
@@ -311,3 +333,72 @@
         @endif
     @endif
 </div>
+
+@once
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+@endonce
+
+<script>
+    (function () {
+        const profitReportChartInstances = {};
+        const profitReportPalette = [
+            '#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6',
+            '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
+        ];
+
+        function renderProfitReportPieChart(canvasId, labels, data) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            if (profitReportChartInstances[canvasId]) {
+                profitReportChartInstances[canvasId].destroy();
+            }
+
+            profitReportChartInstances[canvasId] = new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: labels.map((_, i) => profitReportPalette[i % profitReportPalette.length]),
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11 } },
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.label}: ${Number(ctx.raw).toLocaleString()}`,
+                            },
+                        },
+                    },
+                },
+            });
+        }
+
+        function renderAllProfitReportCharts(pieCharts, grandTotalChart) {
+            (pieCharts || []).forEach((chart) => {
+                renderProfitReportPieChart(`pie-chart-${chart.id}`, chart.labels, chart.data);
+            });
+
+            if (grandTotalChart) {
+                renderProfitReportPieChart('pie-chart-grand-total', grandTotalChart.labels, grandTotalChart.data);
+            }
+        }
+
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('report-charts-updated', (event) => {
+                // Livewire 3 passes dispatched params as a single object.
+                const pieCharts = event.pieCharts ?? event[0]?.pieCharts;
+                const grandTotalChart = event.grandTotalChart ?? event[0]?.grandTotalChart;
+
+                // Give the DOM a tick to settle after Livewire's morph before drawing.
+                setTimeout(() => renderAllProfitReportCharts(pieCharts, grandTotalChart), 50);
+            });
+        });
+    })();
+</script>
