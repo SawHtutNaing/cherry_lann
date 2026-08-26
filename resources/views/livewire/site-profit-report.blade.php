@@ -167,6 +167,18 @@
                 </span>
             </div>
 
+            {{-- Pie chart: Profit breakdown by service type --}}
+            @if ($profitChart)
+                <div class="p-4 mb-6 bg-white border border-gray-200 rounded shadow">
+                    <p class="mb-2 text-sm font-semibold text-center text-gray-700">
+                        Profit Breakdown by Service Type
+                    </p>
+                    <div wire:ignore class="max-w-xs mx-auto">
+                        <canvas id="site-report-profit-chart"></canvas>
+                    </div>
+                </div>
+            @endif
+
             {{-- Expense breakdown --}}
             <div class="mb-6 overflow-hidden bg-white border border-gray-200 rounded shadow">
                 <div class="px-4 py-3 bg-gray-100 border-b">
@@ -202,6 +214,18 @@
                 </div>
             </div>
 
+            {{-- Pie chart: Expense breakdown by category --}}
+            @if ($expenseChart)
+                <div class="p-4 mb-6 bg-white border border-gray-200 rounded shadow">
+                    <p class="mb-2 text-sm font-semibold text-center text-gray-700">
+                        Expense Breakdown by Category
+                    </p>
+                    <div wire:ignore class="max-w-xs mx-auto">
+                        <canvas id="site-report-expense-chart"></canvas>
+                    </div>
+                </div>
+            @endif
+
             {{-- Total expense summary --}}
             <div class="flex items-center justify-between p-4 mb-6 text-white bg-orange-500 rounded shadow">
                 <span class="text-sm font-semibold sm:text-base">Total Expense</span>
@@ -218,3 +242,71 @@
         @endif
     @endif
 </div>
+
+@once
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+@endonce
+
+<script>
+    (function () {
+        const siteReportChartInstances = {};
+        const siteReportPalette = [
+            '#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6',
+            '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
+        ];
+
+        function renderSiteReportPieChart(canvasId, labels, data) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            if (siteReportChartInstances[canvasId]) {
+                siteReportChartInstances[canvasId].destroy();
+            }
+
+            siteReportChartInstances[canvasId] = new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: labels.map((_, i) => siteReportPalette[i % siteReportPalette.length]),
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11 } },
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${ctx.label}: ${Number(ctx.raw).toLocaleString()}`,
+                            },
+                        },
+                    },
+                },
+            });
+        }
+
+        function renderAllSiteReportCharts(profitChart, expenseChart) {
+            if (profitChart) {
+                renderSiteReportPieChart('site-report-profit-chart', profitChart.labels, profitChart.data);
+            }
+            if (expenseChart) {
+                renderSiteReportPieChart('site-report-expense-chart', expenseChart.labels, expenseChart.data);
+            }
+        }
+
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('site-report-charts-updated', (event) => {
+                // Livewire 3 passes dispatched params as a single object.
+                const profitChart = event.profitChart ?? event[0]?.profitChart;
+                const expenseChart = event.expenseChart ?? event[0]?.expenseChart;
+
+                // Give the DOM a tick to settle after Livewire's morph before drawing.
+                setTimeout(() => renderAllSiteReportCharts(profitChart, expenseChart), 50);
+            });
+        });
+    })();
+</script>

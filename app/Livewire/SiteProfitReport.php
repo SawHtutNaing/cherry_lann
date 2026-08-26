@@ -33,11 +33,16 @@ class SiteProfitReport extends Component
 
     public $netProfit = 0;
 
-       public function mount()
+    // Chart data
+    public $profitChart = null;   // profit by service type
+    public $expenseChart = null;  // expenses by category
+
+    public function mount()
     {
         $this->startDate = now()->startOfMonth()->format('Y-m-d');
         $this->endDate = now()->format('Y-m-d');
     }
+
     protected function rules()
     {
         return [
@@ -58,6 +63,8 @@ class SiteProfitReport extends Component
         $this->expenseRows = [];
         $this->expenseGrandTotal = 0;
         $this->netProfit = 0;
+        $this->profitChart = null;
+        $this->expenseChart = null;
 
         // Sorted by sort_no now instead of name
         $serviceTypes = ServiceType::with('boostTypes')->orderBy('sort_no')->get();
@@ -271,7 +278,27 @@ class SiteProfitReport extends Component
 
         $this->netProfit = $this->grandProfitTotal - $this->expenseGrandTotal;
 
+        // ---- Build chart data ----
+        $profitGroupsWithData = collect($this->serviceTypeGroups)
+            ->filter(fn ($g) => (float) $g['subtotals']['my_profit'] != 0);
+
+        if ($profitGroupsWithData->isNotEmpty()) {
+            $this->profitChart = [
+                'labels' => $profitGroupsWithData->pluck('service_type_name')->values()->toArray(),
+                'data' => $profitGroupsWithData->map(fn ($g) => round((float) $g['subtotals']['my_profit'], 2))->values()->toArray(),
+            ];
+        }
+
+        if (!empty($this->expenseRows)) {
+            $this->expenseChart = [
+                'labels' => array_column($this->expenseRows, 'category'),
+                'data' => array_map(fn ($r) => round((float) $r['total'], 2), $this->expenseRows),
+            ];
+        }
+
         $this->hasGenerated = true;
+
+        $this->dispatch('site-report-charts-updated', profitChart: $this->profitChart, expenseChart: $this->expenseChart);
     }
 
     protected function matchExchangeRate($exchangeLogs, $date)
