@@ -137,11 +137,11 @@
         </thead>
         <tbody>
             <tr class="border-b">
-                <td class="px-6 py-4 text-sm text-gray-800">{{ $isExport ? $dataInputs->count() : $totalCount }}</td>
-                <td class="px-6 py-4 text-sm text-gray-800">{{ $charges }}</td>
-                <td class="px-6 py-4 text-sm text-gray-800">{{ $refund }}</td>
-                <td class="px-6 py-4 text-sm text-gray-800">{{ $charges - $refund }}</td>
-                <td class="px-6 py-4 text-sm text-gray-800">{{ $pending_total }}</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-800">{{ $isExport ? $dataInputs->count() : $totalCount }}</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-800">{{ $charges }}</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-800">{{ $refund }}</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-800">{{ $charges - $refund }}</td>
+                <td class="px-6 py-4 text-sm text-center text-gray-800">{{ $pending_total }}</td>
             </tr>
         </tbody>
     </table>
@@ -158,24 +158,22 @@
                 <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Total Amount</th>
                 <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Days</th>
                 <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Status</th>
-@if ($isExport)
-                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Remark</th>
-@endif
 @if (!$isExport)
                 <th class="px-6 py-3 text-sm font-bold text-center text-gray-600 w-[150px]">Client Image</th>
                 <th class="px-6 py-3 text-sm font-bold text-center text-gray-600 w-[150px]">Cherry Lann Image</th>
 @endif
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Remark</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($dataInputs as $dataInput)
                 <tr class="border-b align-top">
-                    <td class="px-6 py-4 text-sm text-gray-800">
+                    <td class="px-6 py-4 text-sm text-center text-gray-800">
                         {{ $isExport ? $loop->iteration : (($dataInputs->currentPage() - 1) * $dataInputs->perPage() + $loop->iteration) }}
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->page_name }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->customer_name }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->user->name ?? 'N/A' }}</td>
+                    <td class="px-6 py-4 text-sm text-center text-gray-800">{{ $dataInput->page_name }}</td>
+                    <td class="px-6 py-4 text-sm text-center text-gray-800">{{ $dataInput->customer_name }}</td>
+                    <td class="px-6 py-4 text-sm text-center text-gray-800">{{ $dataInput->user->name ?? 'N/A' }}</td>
 
                     <td class="px-6 py-4">
                         <div class="rounded-md border border-gray-200 divide-y divide-gray-100 overflow-hidden">
@@ -200,7 +198,7 @@
                         </div>
                     </td>
 
-                    <td class="px-6 py-4 text-sm font-semibold text-gray-800">{{ number_format($dataInput->total_amount) }}</td>
+                    <td class="px-6 py-4 text-sm font-semibold text-center text-gray-800">{{ number_format($dataInput->total_amount) }}</td>
 
                     {{-- NEW — Days column, same color-coded badge as the dashboard --}}
                     <td class="px-6 py-4 text-sm text-center">
@@ -212,13 +210,10 @@
                         </span>
                     </td>
 
-                    <td class="px-6 py-4 text-sm {{ $dataInput->status->name == 'Charge' ? 'text-green-600' : 'text-red-600' }}">
+                    <td class="px-6 py-4 text-sm text-center {{ $dataInput->status->name == 'Charge' ? 'text-green-600' : 'text-red-600' }}">
                         {{ $dataInput->status->label() }}
                     </td>
 
-@if ($isExport)
-                    <td class="px-6 py-4 text-sm text-gray-800">{{ $dataInput->remark }}</td>
-@endif
 @if (!$isExport)
                     {{-- Client Images — dashboard-style gallery (multi-image, add/delete/preview) --}}
                     <td class="px-6 py-4">
@@ -270,6 +265,7 @@
                         </div>
                     </td>
 @endif
+                    <td class="px-6 py-4 text-sm text-center text-gray-800">{{ $dataInput->remark ?: '-' }}</td>
                 </tr>
             @endforeach
         </tbody>
