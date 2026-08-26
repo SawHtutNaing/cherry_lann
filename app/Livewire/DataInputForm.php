@@ -7,6 +7,7 @@ use App\BoostStatus;
 use Livewire\Component;
 use App\Models\DataInput;
 use App\Models\BoostType;
+use App\Models\Region;
 use Illuminate\Support\Facades\Auth;
 
 class DataInputForm extends Component
@@ -14,12 +15,14 @@ class DataInputForm extends Component
     public $customer_name;
     public $page_name;
     public $phone;
+    public $region_id;
     public $status;
     public $is_remark;
     public $remark;
     public $total_amount = 0;
     public $dataInputId;
     public $boostTypes;
+    public $regions;
     public array $items = [];
 
     protected function rules()
@@ -28,6 +31,7 @@ class DataInputForm extends Component
             'customer_name'        => 'nullable|string|max:255',
             'page_name'            => 'required|string|max:255',
             'phone'                => 'nullable|string|max:20',
+            'region_id'            => 'nullable|exists:regions,id',
             'status'               => 'required|in:1,2,3,4',
             'items'                => 'required|array|min:1',
             'items.*.boost_type_id'=> 'required|exists:boost_types,id',
@@ -40,7 +44,9 @@ class DataInputForm extends Component
 
     public function mount($dataInputId = null)
     {
-        $this->boostTypes = BoostType::all();
+        // Ordered enabled-first so disabled ones group naturally at the bottom
+        $this->boostTypes = BoostType::orderByDesc('is_active')->orderBy('name')->get();
+        $this->regions    = Region::orderByDesc('is_active')->orderBy('name')->get();
 
         if ($dataInputId) {
             $dataInput = DataInput::with('items')->findOrFail($dataInputId);
@@ -49,6 +55,7 @@ class DataInputForm extends Component
             $this->customer_name = $dataInput->customer_name;
             $this->page_name     = $dataInput->page_name;
             $this->phone         = $dataInput->phone;
+            $this->region_id     = $dataInput->region_id;
             $this->is_remark     = $dataInput->is_remark;
             $this->remark        = $dataInput->remark;
             $this->status        = $dataInput->status->value;
@@ -122,6 +129,7 @@ class DataInputForm extends Component
             'customer_name' => $this->customer_name,
             'page_name'     => $this->page_name,
             'phone'         => $this->phone,
+            'region_id'     => $this->region_id,
             'total_amount'  => $this->total_amount,
             'is_remark'     => $this->is_remark,
             'remark'        => $this->remark,
@@ -160,6 +168,9 @@ class DataInputForm extends Component
 
     public function render()
     {
-        return view('livewire.data-input-form', ['boostTypes' => $this->boostTypes]);
+        return view('livewire.data-input-form', [
+            'boostTypes' => $this->boostTypes,
+            'regions'    => $this->regions,
+        ]);
     }
 }

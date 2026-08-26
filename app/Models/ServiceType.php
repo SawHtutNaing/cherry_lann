@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class ServiceType extends Model
 {
-    protected $fillable = ['name', 'type', 'sort_no'];
+    protected $fillable = ['name', 'type', 'sort_no', 'is_active'];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
     public function boostTypes()
     {

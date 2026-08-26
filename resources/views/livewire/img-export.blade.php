@@ -158,23 +158,26 @@
             </tr>
         </table>
 
-        <!-- Customer Information -->
-        <table class='bold'>
-            <tr>
-                <td colspan="3" class="section-title bold">Customer Information</td>
-            </tr>
-            <tr>
-                <td style="width: 33%;" class='bold'>
-                    <strong class='bold'>Customer Name:</strong><br><span class='bold'>{{ $customer_name }}</span>
-                </td>
-                <td style="width: 33%;" class='bold'>
-                    <strong class='bold'>Page Name:</strong><br><span class='bold'>{{ $page_name }}</span>
-                </td>
-                <td style="width: 33%;" class='bold'>
-                    <strong class='bold'>Phone Number:</strong><br><span class='bold'>{{ $phone }}</span>
-                </td>
-            </tr>
-        </table>
+      <!-- Customer Information -->
+<table class='bold'>
+    <tr>
+        <td colspan="4" class="section-title bold">Customer Information</td>
+    </tr>
+    <tr>
+        <td style="width: 25%;" class='bold'>
+            <strong class='bold'>Customer Name:</strong><br><span class='bold'>{{ $customer_name }}</span>
+        </td>
+        <td style="width: 25%;" class='bold'>
+            <strong class='bold'>Page Name:</strong><br><span class='bold'>{{ $page_name }}</span>
+        </td>
+        <td style="width: 25%;" class='bold'>
+            <strong class='bold'>Phone Number:</strong><br><span class='bold'>{{ $phone }}</span>
+        </td>
+        <td style="width: 25%;" class='bold'>
+            <strong class='bold'>Region:</strong><br><span class='bold'>{{ $region }}</span>
+        </td>
+    </tr>
+</table>
 
         <!-- Service Table -->
         <table>

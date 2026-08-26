@@ -24,6 +24,9 @@ return [
     ['route' => 'profit-report.index', 'label' => 'Profit  Report', 'roles' => ['super_admin']],
     ['route' => 'site-profit-report.index', 'label' => 'Total  Report', 'roles' => ['super_admin']],
 
+    ['route' => 'regions.index', 'label' => 'Region Management', 'roles' => ['admin', 'super_admin']],
+    ['route' => 'visas.index', 'label' => 'Visa Management', 'roles' => ['admin', 'user']]
+
 
 
 

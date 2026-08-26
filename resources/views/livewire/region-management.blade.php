@@ -1,6 +1,6 @@
 <div>
     <div class="container mx-auto mt-8">
-        <h1 class="mb-6 text-2xl font-semibold">Service Types</h1>
+        <h1 class="mb-6 text-2xl font-semibold">Regions</h1>
 
         <!-- Success Message -->
         @if (session('success'))
@@ -20,16 +20,16 @@
         <div class="mb-6">
             <button wire:click="openModal"
                 class="px-4 py-2 text-white bg-blue-500 rounded shadow hover:bg-blue-400">
-                Create New Service Type
+                Create New Region
             </button>
         </div>
 
         @php
-            $active = $boostTypes->where('is_active', true)->values();
-            $disabled = $boostTypes->where('is_active', false)->values();
+            $active = $regions->where('is_active', true)->values();
+            $disabled = $regions->where('is_active', false)->values();
         @endphp
 
-        <!-- Boost Types Table -->
+        <!-- Regions Table -->
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white border border-gray-200">
                 <thead>
@@ -43,16 +43,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- Enabled boost types --}}
-                    @foreach ($active as $index => $boostType)
-                        <tr class="border-b" wire:key='{{ $boostType->id }}'>
+                    {{-- Enabled regions --}}
+                    @foreach ($active as $index => $region)
+                        <tr class="border-b" wire:key='{{ $region->id }}'>
                             <td class="px-6 py-4 text-sm text-gray-800">{{ $index + 1 }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-800">{{ $boostType->name }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-800">{{ $region->name }}</td>
                             <td class="px-6 py-4 text-sm text-gray-800">
-                                {{ \Carbon\Carbon::parse($boostType->created_at)->format('d/m/y H:i') }}
+                                {{ \Carbon\Carbon::parse($region->created_at)->format('d/m/y H:i') }}
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-800">
-                                {{ \Carbon\Carbon::parse($boostType->updated_at)->format('d/m/y H:i') }}
+                                {{ \Carbon\Carbon::parse($region->updated_at)->format('d/m/y H:i') }}
                             </td>
                             <td class="px-6 py-4">
                                 <span class="inline-block px-2 py-1 text-xs text-white bg-green-500 rounded">
@@ -61,13 +61,13 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col gap-2 sm:flex-row">
-                                    <button wire:click="openModal({{ $boostType->id }})"
+                                    <button wire:click="openModal({{ $region->id }})"
                                         class="w-full sm:w-20 px-3 py-2 text-sm text-center text-white bg-yellow-500 rounded shadow hover:bg-yellow-400">Edit</button>
-                                    <button wire:click="toggleStatus({{ $boostType->id }})"
-                                        wire:confirm="Disable this boost type?"
+                                    <button wire:click="toggleStatus({{ $region->id }})"
+                                        wire:confirm="Disable this region?"
                                         class="w-full sm:w-20 px-3 py-2 text-sm text-center text-white bg-gray-500 rounded shadow hover:bg-gray-400">Disable</button>
-                                    <button wire:confirm="Are you sure you want to delete this boost type?"
-                                        wire:click="delete({{ $boostType->id }})"
+                                    <button wire:confirm="Are you sure you want to delete this region?"
+                                        wire:click="delete({{ $region->id }})"
                                         class="w-full sm:w-20 px-3 py-2 text-sm text-center text-white bg-red-500 rounded shadow hover:bg-red-400">Delete</button>
                                 </div>
                             </td>
@@ -78,21 +78,21 @@
                     @if ($disabled->count() > 0)
                         <tr>
                             <td colspan="6" class="px-4 py-2 text-xs font-semibold tracking-wide text-gray-500 uppercase bg-gray-100 border-y">
-                                Disabled Boost Types
+                                Disabled Regions
                             </td>
                         </tr>
                     @endif
 
-                    {{-- Disabled boost types --}}
-                    @foreach ($disabled as $index => $boostType)
-                        <tr class="border-b bg-gray-50" wire:key='{{ $boostType->id }}'>
+                    {{-- Disabled regions --}}
+                    @foreach ($disabled as $index => $region)
+                        <tr class="border-b bg-gray-50" wire:key='{{ $region->id }}'>
                             <td class="px-6 py-4 text-sm text-red-400">{{ $active->count() + $index + 1 }}</td>
-                            <td class="px-6 py-4 text-sm text-red-500">{{ $boostType->name }}</td>
+                            <td class="px-6 py-4 text-sm text-red-500">{{ $region->name }}</td>
                             <td class="px-6 py-4 text-sm text-red-500">
-                                {{ \Carbon\Carbon::parse($boostType->created_at)->format('d/m/y H:i') }}
+                                {{ \Carbon\Carbon::parse($region->created_at)->format('d/m/y H:i') }}
                             </td>
                             <td class="px-6 py-4 text-sm text-red-500">
-                                {{ \Carbon\Carbon::parse($boostType->updated_at)->format('d/m/y H:i') }}
+                                {{ \Carbon\Carbon::parse($region->updated_at)->format('d/m/y H:i') }}
                             </td>
                             <td class="px-6 py-4">
                                 <span class="inline-block px-2 py-1 text-xs text-white bg-red-500 rounded">
@@ -101,12 +101,12 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col gap-2 sm:flex-row">
-                                    <button wire:click="openModal({{ $boostType->id }})"
+                                    <button wire:click="openModal({{ $region->id }})"
                                         class="w-full sm:w-20 px-3 py-2 text-sm text-center text-white bg-yellow-500 rounded shadow hover:bg-yellow-400">Edit</button>
-                                    <button wire:click="toggleStatus({{ $boostType->id }})"
+                                    <button wire:click="toggleStatus({{ $region->id }})"
                                         class="w-full sm:w-20 px-3 py-2 text-sm text-center text-white bg-green-600 rounded shadow hover:bg-green-500">Enable</button>
-                                    <button wire:confirm="Are you sure you want to delete this boost type?"
-                                        wire:click="delete({{ $boostType->id }})"
+                                    <button wire:confirm="Are you sure you want to delete this region?"
+                                        wire:click="delete({{ $region->id }})"
                                         class="w-full sm:w-20 px-3 py-2 text-sm text-center text-white bg-red-500 rounded shadow hover:bg-red-400">Delete</button>
                                 </div>
                             </td>
@@ -120,7 +120,7 @@
         @if ($isOpen)
             <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                 <div class="w-full max-w-md p-6 bg-white rounded-md shadow-md">
-                    <h2 class="mb-4 text-xl font-semibold">{{ $boostTypeId ? 'Edit Boost Type' : 'Create Boost Type' }}</h2>
+                    <h2 class="mb-4 text-xl font-semibold">{{ $regionId ? 'Edit Region' : 'Create Region' }}</h2>
                     <form wire:submit.prevent="save">
                         <!-- General Error -->
                         @error('general')
@@ -143,7 +143,7 @@
                                 class="px-4 py-2 text-white bg-gray-500 rounded shadow hover:bg-gray-400">Cancel</button>
                             <button type="submit"
                                 class="px-4 py-2 text-white bg-blue-500 rounded shadow hover:bg-blue-400">
-                                {{ $boostTypeId ? 'Update' : 'Create' }}
+                                {{ $regionId ? 'Update' : 'Create' }}
                             </button>
                         </div>
                     </form>

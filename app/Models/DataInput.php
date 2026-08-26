@@ -10,7 +10,7 @@ class DataInput extends Model
     protected $fillable = [
         'page_name', 'customer_name', 'phone', 'status', 'user_id',
         'total_amount', 'is_remark', 'remark',
-        'client_side_image', 'service_side_image',
+        'region_id',
     ];
 
     protected $casts = [
@@ -26,5 +26,25 @@ class DataInput extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(DataInputImage::class);
+    }
+
+    public function clientImages()
+    {
+        return $this->hasMany(DataInputImage::class)->where('type', 'client');
+    }
+
+    public function serviceImages()
+    {
+        return $this->hasMany(DataInputImage::class)->where('type', 'service');
     }
 }

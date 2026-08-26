@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DataInput;
 use App\Models\BoostType;
+use App\Models\Region;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,51 +12,75 @@ use Mccarlosen\LaravelMpdf\Facades\LaravelMpdf as PDF;
 
 class DataInputManagementController extends Controller
 {
- public function index(Request $request)
-{
-    $boostTypes = BoostType::all();
+    public function index(Request $request)
+    {
+        $boostTypes = BoostType::all();
+        $regions    = Region::all();
 
-    $startDate   = $request->input('start_date',   now()->subDays(30)->format('Y-m-d'));
-    $endDate     = $request->input('end_date',     now()->format('Y-m-d'));
-    $boosttype   = $request->input('boosttype');
-    $statusAt    = $request->input('status_at');
-    $cusName     = $request->input('cus_name_search');
-    $checkRemark = $request->input('check_remark');
+        $startDate   = $request->input('start_date',   now()->subDays(30)->format('Y-m-d'));
+        $endDate     = $request->input('end_date',     now()->format('Y-m-d'));
+        $boosttype   = $request->input('boosttype');
+        $statusAt    = $request->input('status_at');
+        $cusName     = $request->input('cus_name_search');
+        $pageName    = $request->input('page_name_search');
+        $phone       = $request->input('phone_search');
+        $regionId    = $request->input('region_id');
+        $checkRemark = $request->input('check_remark');
+        $daysCount   = $request->input('days_count');
 
-    $query = DataInput::query()
-        ->where('user_id', auth()->id())
-        ->with('items.boostType')
-        ->orderBy('created_at', 'desc');
+        $query = DataInput::query()
+            ->where('user_id', auth()->id())
+            ->with(['items.boostType', 'region', 'images'])
+            ->orderBy('created_at', 'desc');
 
-    if ($startDate && $endDate) {
-        $query->whereHas('items', function ($q) use ($startDate, $endDate) {
-            $q->whereBetween('start_date', [$startDate, $endDate]);
-        });
+        if ($startDate && $endDate) {
+            $query->whereHas('items', function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate, $endDate]);
+            });
+        }
+
+        if ($boosttype) {
+            $query->whereHas('items', fn($q) => $q->where('boost_type_id', $boosttype));
+        }
+
+        if ($cusName) {
+            $query->where('customer_name', 'like', '%' . $cusName . '%');
+        }
+
+        if ($pageName) {
+            $query->where('page_name', 'like', '%' . $pageName . '%');
+        }
+
+        if ($phone) {
+            $query->where('phone', 'like', '%' . $phone . '%');
+        }
+
+        if ($regionId) {
+            $query->where('region_id', $regionId);
+        }
+
+        if ($statusAt) {
+            $query->where('status', $statusAt);
+        }
+
+        if ($checkRemark) {
+            $query->where('is_remark', 1);
+        }
+
+        if ($daysCount !== null && $daysCount !== '') {
+            // Days elapsed since creation >= the given count
+            $query->whereRaw('DATEDIFF(CURDATE(), created_at) >= ?', [(int) $daysCount]);
+        }
+
+        $dataInputs = $query->get();
+
+        return view('data-inputs.index', compact(
+            'dataInputs', 'boostTypes', 'regions',
+            'startDate', 'endDate', 'boosttype', 'statusAt',
+            'cusName', 'pageName', 'phone', 'regionId', 'checkRemark',
+            'daysCount'
+        ));
     }
-
-    if ($boosttype) {
-        $query->whereHas('items', fn($q) => $q->where('boost_type_id', $boosttype));
-    }
-
-    if ($cusName) {
-        $query->where('customer_name', 'like', '%' . $cusName . '%');
-    }
-
-    if ($statusAt) {
-        $query->where('status', $statusAt);
-    }
-
-    if ($checkRemark) {
-        $query->where('is_remark', 1);
-    }
-
-    $dataInputs = $query->get();
-
-    return view('data-inputs.index', compact(
-        'dataInputs', 'boostTypes',
-        'startDate', 'endDate', 'boosttype', 'statusAt', 'cusName', 'checkRemark'
-    ));
-}
 
     public function delete($id)
     {
@@ -67,81 +92,84 @@ class DataInputManagementController extends Controller
     }
 
     public function copy($id)
-{
-    $original = DataInput::with('items')->where('user_id', auth()->id())->findOrFail($id);
-    $copy = $original->replicate(['client_side_image', 'service_side_image']);
-    $copy->status = '3';
-    $copy->save();
+    {
+        $original = DataInput::with('items')->where('user_id', auth()->id())->findOrFail($id);
+        $copy = $original->replicate(['client_side_image', 'service_side_image']);
+        $copy->status = '3';
+        $copy->save();
 
-    foreach ($original->items as $item) {
-        $copy->items()->create($item->only(['boost_type_id', 'start_date', 'amount', 'mm_kyat', 'discount', 'line_total']));
+        foreach ($original->items as $item) {
+            $copy->items()->create($item->only(['boost_type_id', 'start_date', 'amount', 'mm_kyat', 'discount', 'line_total']));
+        }
+
+        return redirect()->back()->with('success', 'Record copied successfully!')->withInput();
     }
 
-    return redirect()->back()->with('success', 'Record copied successfully!')->withInput();
-}
+    public function export($id)
+    {
 
-  public function export($id)
-{
-    try {
-        $boost = DataInput::with(['items.boostType'])->findOrFail($id);
+        try {
+            $boost = DataInput::with(['items.boostType', 'region', 'images'])->findOrFail($id);
 
-        $logoPath = config('app.logo_path', public_path('images/logo.jpeg'));
-        $signPath = public_path('images/sign.jpg');
+            $logoPath = config('app.logo_path', public_path('images/logo.jpeg'));
+            $signPath = public_path('images/sign.jpg');
 
-        $logoBase64 = file_exists($logoPath)
-            ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($logoPath))
-            : 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('images/fallback-logo.jpeg')));
+            $logoBase64 = file_exists($logoPath)
+                ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($logoPath))
+                : 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('images/fallback-logo.jpeg')));
 
-        $signBase64 = file_exists($signPath)
-            ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($signPath))
-            : 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('images/fallback-logo.jpeg')));
+            $signBase64 = file_exists($signPath)
+                ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($signPath))
+                : 'data:image/jpeg;base64,' . base64_encode(file_get_contents(public_path('images/fallback-logo.jpeg')));
 
-        $items = $boost->items->map(fn ($item) => [
-            'service'  => $item->boostType->name ?? 'N/A',
-            'price'    => $item->mm_kyat,
-            'qty'      => $item->amount,
-            'total'    => $item->line_total,
-            'discount' => $item->discount,
-        ]);
+            $items = $boost->items->map(fn ($item) => [
+                'service'  => $item->boostType->name ?? 'N/A',
+                'price'    => $item->mm_kyat,
+                'qty'      => $item->amount,
+                'total'    => $item->line_total,
+                'discount' => $item->discount,
+            ]);
 
-        $data = [
-            'id'             => $id,
-            'customer_name'  => $boost->customer_name ?? 'N/A',
-            'page_name'      => $boost->page_name ?? 'Sample Page',
-            'phone'          => $boost->phone ?? 'N/A',
-            'items'          => $items,
-            'subtotal'       => $items->sum('total'),
-            'discount'       => $items->sum('discount'),
-            'total_amount'   => $boost->total_amount ?? 0,
-            'generated_date' => now()->format('d-m-Y'),
-            'logo_base64'    => $logoBase64,
-            'sign_base64'    => $signBase64,
-        ];
+            $data = [
+                'id'             => $id,
+                'customer_name'  => $boost->customer_name ?? 'N/A',
+                'page_name'      => $boost->page_name ?? 'Sample Page',
+                'phone'          => $boost->phone ?? 'N/A',
+                'region'         => $boost->region->name ?? 'N/A',
+                'items'          => $items,
+                'subtotal'       => $items->sum('total'),
+                'discount'       => $items->sum('discount'),
+                'total_amount'   => $boost->total_amount ?? 0,
+                'generated_date' => now()->format('d-m-Y'),
+                'logo_base64'    => $logoBase64,
+                'sign_base64'    => $signBase64,
+            ];
 
-        $pdf = PDF::loadView('livewire.img-export', $data, [
-            'fontDir' => [storage_path('fonts')],
-            'fontdata' => [
-                'myanmar' => ['R' => 'padauk.ttf', 'B' => 'Padauk-Bold.ttf', 'EB' => 'ex_bold.ttf'],
-                'mm_bold' => ['R' => 'Montserrat-Black.ttf', 'B' => 'Montserrat-Black.ttf', 'EB' => 'Montserrat-Black.ttf'],
-            ],
-            'format'       => 'A4',
-            'mode'         => 'utf-8',
-            'default_font' => 'myanmar',
-        ]);
+            $pdf = PDF::loadView('livewire.img-export', $data, [
+                'fontDir' => [storage_path('fonts')],
+                'fontdata' => [
+                    'myanmar' => ['R' => 'padauk.ttf', 'B' => 'Padauk-Bold.ttf', 'EB' => 'ex_bold.ttf'],
+                    'mm_bold' => ['R' => 'Montserrat-Black.ttf', 'B' => 'Montserrat-Black.ttf', 'EB' => 'Montserrat-Black.ttf'],
+                ],
+                'format'       => 'A4',
+                'mode'         => 'utf-8',
+                'default_font' => 'myanmar',
+            ]);
 
-        $pdfContent = $pdf->output();
+            $pdfContent = $pdf->output();
 
-        return response($pdfContent, 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="voucher_' . $id . '.pdf"',
-            'Content-Length'      => strlen($pdfContent),
-            'Cache-Control'       => 'no-cache, no-store, must-revalidate',
-        ]);
-    } catch (\Exception $e) {
-        \Log::error('Failed to export voucher: ' . $e->getMessage());
-        return redirect()->back()->with('error', 'Unable to generate voucher. Please try again later.');
+            return response($pdfContent, 200, [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="voucher_' . $id . '.pdf"',
+                'Content-Length'      => strlen($pdfContent),
+                'Cache-Control'       => 'no-cache, no-store, must-revalidate',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to export voucher: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Unable to generate voucher. Please try again later.');
+        }
     }
-}
+
     public function exportDatabase()
     {
         $ds   = DIRECTORY_SEPARATOR;

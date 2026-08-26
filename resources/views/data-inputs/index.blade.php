@@ -36,7 +36,7 @@
                 @endif
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Service</label>
                     <select name="boosttype" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -71,6 +71,11 @@
                     <input type="text" name="cus_name_search" value="{{ $cusName }}" placeholder="Search..."
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Days ≥</label>
+                    <input type="number" name="days_count" min="0" value="{{ $daysCount }}" placeholder="e.g. 7"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
                 <div class="flex flex-col justify-between gap-2">
                     <label class="inline-flex items-center gap-2 cursor-pointer pt-5">
                         <input type="checkbox" name="check_remark" value="1" @checked($checkRemark)
@@ -102,67 +107,68 @@
                         <p class="font-semibold text-gray-800 text-sm truncate">{{ $dataInput->customer_name ?? 'N/A' }}</p>
                         <p class="text-xs text-gray-400 truncate">{{ $dataInput->page_name ?? 'N/A' }}</p>
                     </div>
-                    <span class="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full
-                        @if($dataInput->status->name == 'Charge') bg-green-100 text-green-700
-                        @elseif($dataInput->status->name == 'Refund') bg-red-100 text-red-700
-                        @else bg-amber-100 text-amber-700 @endif">
-                        {{ $dataInput->status->label() }}
-                    </span>
+                    <div class="shrink-0 flex flex-col items-end gap-1">
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full
+                            @if($dataInput->status->name == 'Charge') bg-green-100 text-green-700
+                            @elseif($dataInput->status->name == 'Refund') bg-red-100 text-red-700
+                            @else bg-amber-100 text-amber-700 @endif">
+                            {{ $dataInput->status->label() }}
+                        </span>
+                        <span class="text-[10px] font-medium text-gray-400">{{ \Carbon\Carbon::parse($dataInput->created_at)->diffInDays(now()) }}d</span>
+                    </div>
                 </div>
 
                 {{-- Line Items --}}
-             {{-- Items summary --}}
-<td class="px-4 py-3">
-    <div class="rounded-md border border-gray-200 divide-y divide-gray-100 overflow-hidden">
-        @forelse ($dataInput->items as $item)
-            <div class="px-2.5 py-1.5 bg-white text-[11px] leading-tight">
-                <div class="flex items-center justify-between gap-2">
-                    <span class="font-semibold text-gray-800 truncate">{{ $item->boostType->name ?? 'N/A' }}</span>
-                    <span class="text-gray-400 shrink-0 tabular-nums">{{ $item->start_date ? \Carbon\Carbon::parse($item->start_date)->format('d/m/y') : 'N/A' }}</span>
+                <div class="px-4 py-3">
+                    <div class="rounded-md border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+                        @forelse ($dataInput->items as $item)
+                            <div class="px-2.5 py-1.5 bg-white text-[11px] leading-tight">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="font-semibold text-gray-800 truncate">{{ $item->boostType->name ?? 'N/A' }}</span>
+                                    <span class="text-gray-400 shrink-0 tabular-nums">{{ $item->start_date ? \Carbon\Carbon::parse($item->start_date)->format('d/m/y') : 'N/A' }}</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-gray-500 mt-0.5">
+                                    <span>Qty {{ $item->amount }}</span>
+                                    <span>·</span>
+                                    <span>{{ number_format($item->mm_kyat) }}</span>
+                                    <span>·</span>
+                                    <span>-{{ number_format($item->discount) }}</span>
+                                    <span class="ml-auto font-semibold text-gray-800">{{ number_format($item->line_total) }}</span>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="px-2.5 py-2 text-xs text-gray-400 text-center">No items</div>
+                        @endforelse
+                    </div>
                 </div>
-                <div class="flex items-center gap-2 text-gray-500 mt-0.5">
-                    <span>Qty {{ $item->amount }}</span>
-                    <span>·</span>
-                    <span>{{ number_format($item->mm_kyat) }}</span>
-                    <span>·</span>
-                    <span>-{{ number_format($item->discount) }}</span>
-                    <span class="ml-auto font-semibold text-gray-800">{{ number_format($item->line_total) }}</span>
-                </div>
-            </div>
-        @empty
-            <div class="px-2.5 py-2 text-xs text-gray-400 text-center">No items</div>
-        @endforelse
-    </div>
-</td>
 
-                {{-- Image Upload --}}
+                {{-- Image Gallery (mobile) --}}
                 <div class="px-4 py-3 grid grid-cols-2 gap-2">
-                    @foreach(['client_side_image' => 'Client', 'service_side_image' => 'Cherry Lann'] as $imgField => $imgLabel)
-                        @php $prefix = $imgField === 'client_side_image' ? 'client' : 'service'; @endphp
-                        <div class="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 text-center">{{ $imgLabel }}</p>
-                            <div id="cell-{{ $prefix }}-{{ $dataInput->id }}">
-                                @if($dataInput->$imgField)
-                                    <div class="flex flex-col items-center gap-1.5">
-                                        <img src="{{ Storage::disk('public')->url($dataInput->$imgField) }}"
-                                             class="w-full h-20 object-cover rounded-lg cursor-pointer"
-                                             onclick="openImageModal(this.src)">
-                                        <button type="button"
-                                                onclick="confirmDeleteImage({{ $dataInput->id }}, '{{ $imgField }}')"
-                                                class="w-full inline-flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold text-white bg-red-500 rounded-md hover:bg-red-600 active:scale-95 transition-all">
-                                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0a1 1 0 01-1-1V5a1 1 0 011-1h8a1 1 0 011 1v1a1 1 0 01-1 1H9z"/></svg>
-                                            Delete
+                    @foreach ([['type' => 'client', 'label' => 'Client'], ['type' => 'service', 'label' => 'Cherry Lann']] as $g)
+                        <div class="bg-gray-50 rounded-lg p-2 border border-gray-100" id="gallery-{{ $g['type'] }}-{{ $dataInput->id }}">
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 text-center">{{ $g['label'] }}</p>
+
+                            <div class="flex flex-wrap gap-1.5 justify-center mb-2" id="images-{{ $g['type'] }}-{{ $dataInput->id }}">
+                                @forelse ($g['type'] === 'client' ? $dataInput->clientImages : $dataInput->serviceImages as $image)
+                                    <div class="relative" id="image-{{ $image->id }}">
+                                        <img src="{{ $image->url }}"
+                                             class="w-14 h-14 object-cover rounded-lg cursor-pointer border border-gray-200 hover:opacity-80 transition"
+                                             onclick="openImageModal('{{ $image->url }}', 'images-{{ $g['type'] }}-{{ $dataInput->id }}')">
+                                        <button type="button" onclick="confirmDeleteImage({{ $dataInput->id }}, {{ $image->id }})"
+                                            class="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center text-xs text-white bg-red-500 rounded-full shadow hover:bg-red-600">
+                                            ✕
                                         </button>
                                     </div>
-                                @else
-                                    <button type="button"
-                                            onclick="triggerUpload({{ $dataInput->id }}, '{{ $imgField }}')"
-                                            class="w-full inline-flex items-center justify-center gap-1 px-2 py-2.5 text-xs font-semibold text-white bg-blue-500 rounded-md hover:bg-blue-600 active:scale-95 transition-all">
-                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
-                                        Upload
-                                    </button>
-                                @endif
+                                @empty
+                                    <span class="text-xs text-gray-400 italic">No images</span>
+                                @endforelse
                             </div>
+
+                            <button type="button" onclick="triggerUpload({{ $dataInput->id }}, '{{ $g['type'] }}')"
+                                class="w-full inline-flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold text-white bg-blue-500 rounded-md hover:bg-blue-600 active:scale-95 transition-all">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                Add
+                            </button>
                         </div>
                     @endforeach
                 </div>
@@ -224,7 +230,7 @@
     {{-- DESKTOP TABLE VIEW                                                     --}}
     {{-- ══════════════════════════════════════════════════════════════════════ --}}
     <div class="mt-4 overflow-x-auto overflow-y-auto h-[58vh] relative hidden sm:block rounded-xl border border-gray-200 shadow-sm">
-        <table class="min-w-[1700px] w-full bg-white table-fixed">
+        <table class="min-w-[1770px] w-full bg-white table-fixed">
             <thead class="sticky top-0 bg-gray-50 z-10 border-b border-gray-200">
                 <tr>
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[50px]">No</th>
@@ -234,6 +240,7 @@
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[110px]">Phone</th>
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[220px]">Items</th>
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[110px]">Total</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[70px]">Days</th>
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[90px]">Status</th>
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[130px]">Client Img</th>
                     <th class="px-4 py-3 text-xs font-semibold text-left text-gray-500 uppercase tracking-wide w-[130px]">Cherry Lann</th>
@@ -301,6 +308,18 @@
                         </td>
 
                         <td class="px-4 py-3 text-sm font-semibold text-gray-800">{{ number_format($dataInput->total_amount) }}</td>
+
+                        {{-- Days since created --}}
+                       {{-- Days since created (colored to match Status) --}}
+<td class="px-4 py-3 text-sm">
+    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+        @if($dataInput->status->name == 'Charge') bg-green-100 text-green-700
+        @elseif($dataInput->status->name == 'Refund') bg-red-100 text-red-700
+        @else bg-amber-100 text-amber-700 @endif">
+        {{ \Carbon\Carbon::parse($dataInput->created_at)->diffInDays(now()) }}d
+    </span>
+</td>
+
                         <td class="px-4 py-3">
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
                                 @if($dataInput->status->name == 'Charge') bg-green-100 text-green-700
@@ -310,51 +329,53 @@
                             </span>
                         </td>
 
-                        {{-- Client Image --}}
+                        {{-- Client Images --}}
                         <td class="px-4 py-3">
-                            <div id="cell-client-{{ $dataInput->id }}">
-                                @if($dataInput->client_side_image)
-                                    <div class="flex flex-col gap-1 items-center">
-                                        <img src="{{ Storage::disk('public')->url($dataInput->client_side_image) }}"
-                                             class="w-14 h-14 object-cover rounded-lg cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity"
-                                             onclick="openImageModal(this.src)">
-                                        <button type="button" onclick="confirmDeleteImage({{ $dataInput->id }}, 'client_side_image')"
-                                                class="inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors">
-                                            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7"/></svg>
-                                            Del
-                                        </button>
-                                    </div>
-                                @else
-                                    <button type="button" onclick="triggerUpload({{ $dataInput->id }}, 'client_side_image')"
-                                            class="inline-flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors whitespace-nowrap">
-                                        <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
-                                        Upload
-                                    </button>
-                                @endif
+                            <div id="gallery-client-{{ $dataInput->id }}">
+                                <div class="flex flex-wrap gap-1 justify-center mb-1.5" id="images-client-{{ $dataInput->id }}">
+                                    @forelse ($dataInput->clientImages as $image)
+                                        <div class="relative" id="image-{{ $image->id }}">
+                                            <img src="{{ $image->url }}"
+                                                 class="w-12 h-12 object-cover rounded-lg cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity"
+                                                 onclick="openImageModal('{{ $image->url }}', 'images-client-{{ $dataInput->id }}')">
+                                            <button type="button" onclick="confirmDeleteImage({{ $dataInput->id }}, {{ $image->id }})"
+                                                class="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center text-[10px] text-white bg-red-500 rounded-full shadow hover:bg-red-600">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    @empty
+                                        <span class="text-xs text-gray-400 italic">No images</span>
+                                    @endforelse
+                                </div>
+                                <button type="button" onclick="triggerUpload({{ $dataInput->id }}, 'client')"
+                                    class="w-full inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors whitespace-nowrap">
+                                    + Add
+                                </button>
                             </div>
                         </td>
 
-                        {{-- Service Image --}}
+                        {{-- Service Images --}}
                         <td class="px-4 py-3">
-                            <div id="cell-service-{{ $dataInput->id }}">
-                                @if($dataInput->service_side_image)
-                                    <div class="flex flex-col gap-1 items-center">
-                                        <img src="{{ Storage::disk('public')->url($dataInput->service_side_image) }}"
-                                             class="w-14 h-14 object-cover rounded-lg cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity"
-                                             onclick="openImageModal(this.src)">
-                                        <button type="button" onclick="confirmDeleteImage({{ $dataInput->id }}, 'service_side_image')"
-                                                class="inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors">
-                                            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7"/></svg>
-                                            Del
-                                        </button>
-                                    </div>
-                                @else
-                                    <button type="button" onclick="triggerUpload({{ $dataInput->id }}, 'service_side_image')"
-                                            class="inline-flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors whitespace-nowrap">
-                                        <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
-                                        Upload
-                                    </button>
-                                @endif
+                            <div id="gallery-service-{{ $dataInput->id }}">
+                                <div class="flex flex-wrap gap-1 justify-center mb-1.5" id="images-service-{{ $dataInput->id }}">
+                                    @forelse ($dataInput->serviceImages as $image)
+                                        <div class="relative" id="image-{{ $image->id }}">
+                                            <img src="{{ $image->url }}"
+                                                 class="w-12 h-12 object-cover rounded-lg cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity"
+                                                 onclick="openImageModal('{{ $image->url }}', 'images-service-{{ $dataInput->id }}')">
+                                            <button type="button" onclick="confirmDeleteImage({{ $dataInput->id }}, {{ $image->id }})"
+                                                class="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center text-[10px] text-white bg-red-500 rounded-full shadow hover:bg-red-600">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    @empty
+                                        <span class="text-xs text-gray-400 italic">No images</span>
+                                    @endforelse
+                                </div>
+                                <button type="button" onclick="triggerUpload({{ $dataInput->id }}, 'service')"
+                                    class="w-full inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors whitespace-nowrap">
+                                    + Add
+                                </button>
                             </div>
                         </td>
 
@@ -375,7 +396,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="14" class="text-center text-gray-400 py-16">
+                        <td colspan="15" class="text-center text-gray-400 py-16">
                             <svg class="w-10 h-10 mx-auto mb-2 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                             <p class="text-sm font-medium">No records found</p>
                         </td>
@@ -385,8 +406,8 @@
         </table>
     </div>
 
-    {{-- Hidden file input --}}
-    <input type="file" id="imageFileInput" accept="image/*" class="hidden">
+    {{-- Hidden file input (multiple selection enabled) --}}
+    <input type="file" id="imageFileInput" accept="image/*" multiple class="hidden">
 
     {{-- Delete Image Confirmation Modal --}}
     <div id="deleteConfirmModal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center px-4">
@@ -413,24 +434,137 @@
         </div>
     </div>
 
-    {{-- Image Preview Modal --}}
-    <div id="imageModal" class="fixed inset-0 bg-black/90 hidden z-50 flex flex-col items-center justify-center px-4">
-        <button onclick="closeImageModal()"
-                class="absolute top-4 right-4 z-10 inline-flex items-center gap-1.5 px-4 py-2 bg-white text-gray-800 text-sm font-semibold rounded-full shadow-lg hover:bg-gray-100 active:scale-95 transition-all">
+    {{-- Image Preview Modal — with gallery navigation --}}
+    <div id="imageModal" class="img-modal-overlay">
+        <button type="button" onclick="closeImageModal()" class="img-modal-close-btn" aria-label="Close">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             Close
         </button>
-        <img id="imageModalImg" src="" class="max-w-full max-h-[85vh] rounded-xl shadow-2xl object-contain">
-        <p class="mt-3 text-white/40 text-xs">Tap outside or press Esc to close</p>
+
+        <button type="button" id="imageModalPrev" onclick="showPrevImage(event)" class="img-modal-nav-btn img-modal-nav-left" aria-label="Previous image">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+
+        <img id="imageModalImg" src="" class="img-modal-image">
+
+        <button type="button" id="imageModalNext" onclick="showNextImage(event)" class="img-modal-nav-btn img-modal-nav-right" aria-label="Next image">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <div class="img-modal-footer">
+            <span id="imageModalCounter" class="img-modal-counter"></span>
+            <p class="img-modal-hint">Use ← → to navigate · Tap outside or press Esc to close</p>
+        </div>
     </div>
 
 </div>
 
+<style>
+    /* ── Gallery Image Modal — vanilla CSS ─────────────────────────────── */
+    .img-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0, 0, 0, 0.92);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .img-modal-overlay.is-open {
+        display: flex;
+    }
+    .img-modal-image {
+        max-width: 100%;
+        max-height: 78vh;
+        border-radius: 0.75rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+        object-fit: contain;
+        user-select: none;
+    }
+    .img-modal-close-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 5;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.5rem 1rem;
+        background: #fff;
+        color: #1f2937;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 9999px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: background-color 0.15s, transform 0.1s;
+    }
+    .img-modal-close-btn:hover { background: #f3f4f6; }
+    .img-modal-close-btn:active { transform: scale(0.95); }
+
+    .img-modal-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 5;
+        width: 3rem;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        border: none;
+        border-radius: 9999px;
+        cursor: pointer;
+        backdrop-filter: blur(4px);
+        transition: background-color 0.15s, transform 0.1s;
+    }
+    .img-modal-nav-btn:hover { background: rgba(255, 255, 255, 0.25); }
+    .img-modal-nav-btn:active { transform: translateY(-50%) scale(0.92); }
+    .img-modal-nav-btn.is-hidden { display: none; }
+
+    .img-modal-nav-left  { left: 0.75rem; }
+    .img-modal-nav-right { right: 0.75rem; }
+
+    @media (min-width: 640px) {
+        .img-modal-nav-left  { left: 1.5rem; }
+        .img-modal-nav-right { right: 1.5rem; }
+        .img-modal-nav-btn { width: 3.5rem; height: 3.5rem; }
+    }
+
+    .img-modal-footer {
+        margin-top: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .img-modal-counter {
+        display: none;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.12);
+        padding: 0.125rem 0.625rem;
+        border-radius: 9999px;
+    }
+    .img-modal-counter.is-visible { display: inline-block; }
+    .img-modal-hint {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.4);
+        margin: 0;
+    }
+</style>
+
 <script>
-    let currentUploadId   = null;
-    let currentUploadType = null;
-    let pendingDeleteId   = null;
-    let pendingDeleteType = null;
+    let currentUploadId    = null;
+    let currentUploadType  = null;
+    let pendingDataInputId = null;
+    let pendingImageId     = null;
 
     const fileInput = document.getElementById('imageFileInput');
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -444,88 +578,145 @@
 
     fileInput.addEventListener('change', function () {
         if (!this.files.length) return;
+
         const formData = new FormData();
-        formData.append('image', this.files[0]);
+        for (const file of this.files) {
+            formData.append('images[]', file);
+        }
 
-        setCellHtml(currentUploadId, currentUploadType,
-            `<div class="flex flex-col gap-1 items-center">
-                <div class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <svg class="animate-spin w-5 h-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                    </svg>
-                </div>
-                <span class="text-xs text-gray-400">Uploading…</span>
-            </div>`
-        );
-
-        fetch(`/data-inputs/${currentUploadId}/image/${currentUploadType}`, {
+        fetch(`/data-inputs/${currentUploadId}/images/${currentUploadType}`, {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': csrfToken },
             body: formData,
         })
         .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-        .then(d => setCellHtml(currentUploadId, currentUploadType, buildImageCell(currentUploadId, currentUploadType, d.url)))
-        .catch(() => {
-            setCellHtml(currentUploadId, currentUploadType, buildUploadBtn(currentUploadId, currentUploadType));
-            showToast('Upload failed. Please try again.', 'error');
-        });
+        .then(d => {
+            const groupId = `images-${currentUploadType}-${currentUploadId}`;
+            document.querySelectorAll(`[id="${groupId}"]`).forEach(container => {
+                container.querySelectorAll('span.italic').forEach(el => el.remove());
+                d.images.forEach(img => {
+                    container.insertAdjacentHTML('beforeend', buildImageThumb(currentUploadId, img.id, img.url, groupId));
+                });
+            });
+        })
+        .catch(() => showToast('Upload failed. Please try again.', 'error'));
     });
 
-    function confirmDeleteImage(id, type) {
-        pendingDeleteId = id; pendingDeleteType = type;
+    function buildImageThumb(dataInputId, imageId, url, groupId) {
+        return `<div class="relative" id="image-${imageId}">
+            <img src="${url}" class="w-12 h-12 object-cover rounded-lg cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity" onclick="openImageModal('${url}', '${groupId}')">
+            <button type="button" onclick="confirmDeleteImage(${dataInputId}, ${imageId})" class="absolute -top-1.5 -right-1.5 w-4 h-4 flex items-center justify-center text-[10px] text-white bg-red-500 rounded-full shadow hover:bg-red-600">✕</button>
+        </div>`;
+    }
+
+    function confirmDeleteImage(dataInputId, imageId) {
+        pendingDataInputId = dataInputId;
+        pendingImageId      = imageId;
         document.getElementById('deleteConfirmModal').classList.remove('hidden');
     }
     function cancelDeleteImage() {
-        pendingDeleteId = pendingDeleteType = null;
+        pendingDataInputId = pendingImageId = null;
         document.getElementById('deleteConfirmModal').classList.add('hidden');
     }
     function executeDeleteImage() {
-        const id = pendingDeleteId, type = pendingDeleteType;
+        const dataInputId = pendingDataInputId, imageId = pendingImageId;
         document.getElementById('deleteConfirmModal').classList.add('hidden');
-        if (!id || !type) return;
-        setCellHtml(id, type, '<span class="text-xs text-gray-400">Deleting…</span>');
-        fetch(`/data-inputs/${id}/image/${type}`, {
+        if (!dataInputId || !imageId) return;
+
+        fetch(`/data-inputs/${dataInputId}/images/${imageId}`, {
             method: 'DELETE',
-            headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json' },
+            headers: { 'X-CSRF-TOKEN': csrfToken },
         })
         .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-        .then(() => { setCellHtml(id, type, buildUploadBtn(id, type)); showToast('Image deleted.'); })
+        .then(() => {
+            document.querySelectorAll(`[id="image-${imageId}"]`).forEach(el => el.remove());
+            showToast('Image deleted.');
+        })
         .catch(() => showToast('Delete failed.', 'error'))
-        .finally(() => { pendingDeleteId = pendingDeleteType = null; });
+        .finally(() => { pendingDataInputId = pendingImageId = null; });
     }
 
     document.getElementById('deleteConfirmModal').addEventListener('click', e => { if (e.target === e.currentTarget) cancelDeleteImage(); });
 
-    function setCellHtml(id, type, html) {
-        const prefix = type === 'client_side_image' ? 'client' : 'service';
-        document.querySelectorAll(`[id="cell-${prefix}-${id}"]`).forEach(el => el.innerHTML = html);
-    }
-    function buildImageCell(id, type, url) {
-        return `<div class="flex flex-col gap-1.5 items-center">
-            <img src="${url}" class="w-14 h-14 object-cover rounded-lg cursor-pointer border border-gray-200 hover:opacity-80" onclick="openImageModal('${url}')">
-            <button type="button" onclick="confirmDeleteImage(${id},'${type}')" class="inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors">
-                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7"/></svg>Del
-            </button></div>`;
-    }
-    function buildUploadBtn(id, type) {
-        return `<button type="button" onclick="triggerUpload(${id},'${type}')" class="inline-flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 transition-colors whitespace-nowrap">
-            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>Upload
-        </button>`;
-    }
+    // ── Gallery image modal (vanilla JS) ───────────────────────────────
+    let modalImages = [];
+    let modalIndex  = 0;
 
-    function openImageModal(src) {
-        document.getElementById('imageModalImg').src = src;
-        document.getElementById('imageModal').classList.remove('hidden');
+    function openImageModal(src, groupId) {
+        modalImages = [];
+
+        const container = groupId ? document.getElementById(groupId) : null;
+        if (container) {
+            container.querySelectorAll('img').forEach(img => modalImages.push(img.getAttribute('src')));
+        }
+        if (!modalImages.length) {
+            modalImages = [src];
+        }
+
+        modalIndex = modalImages.indexOf(src);
+        if (modalIndex === -1) modalIndex = 0;
+
+        updateModalImage();
+        document.getElementById('imageModal').classList.add('is-open');
         document.body.style.overflow = 'hidden';
     }
+
+    function updateModalImage() {
+        document.getElementById('imageModalImg').src = modalImages[modalIndex];
+
+        const counter = document.getElementById('imageModalCounter');
+        const prevBtn = document.getElementById('imageModalPrev');
+        const nextBtn = document.getElementById('imageModalNext');
+
+        if (modalImages.length > 1) {
+            counter.textContent = `${modalIndex + 1} / ${modalImages.length}`;
+            counter.classList.add('is-visible');
+            prevBtn.classList.remove('is-hidden');
+            nextBtn.classList.remove('is-hidden');
+        } else {
+            counter.classList.remove('is-visible');
+            prevBtn.classList.add('is-hidden');
+            nextBtn.classList.add('is-hidden');
+        }
+    }
+
+    function showPrevImage(e) {
+        if (e) e.stopPropagation();
+        if (modalImages.length < 2) return;
+        modalIndex = (modalIndex - 1 + modalImages.length) % modalImages.length;
+        updateModalImage();
+    }
+
+    function showNextImage(e) {
+        if (e) e.stopPropagation();
+        if (modalImages.length < 2) return;
+        modalIndex = (modalIndex + 1) % modalImages.length;
+        updateModalImage();
+    }
+
     function closeImageModal() {
-        document.getElementById('imageModal').classList.add('hidden');
+        document.getElementById('imageModal').classList.remove('is-open');
         document.getElementById('imageModalImg').src = '';
+        modalImages = [];
+        modalIndex = 0;
         document.body.style.overflow = '';
     }
-    document.getElementById('imageModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeImageModal(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeImageModal(); cancelDeleteImage(); } });
+
+    document.getElementById('imageModal').addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeImageModal();
+    });
+
+    document.addEventListener('keydown', e => {
+        const modalOpen = document.getElementById('imageModal').classList.contains('is-open');
+
+        if (modalOpen) {
+            if (e.key === 'ArrowLeft') showPrevImage();
+            if (e.key === 'ArrowRight') showNextImage();
+            if (e.key === 'Escape') closeImageModal();
+        }
+
+        if (e.key === 'Escape') cancelDeleteImage();
+    });
 
     function showToast(message, type = 'success') {
         const t = document.createElement('div');

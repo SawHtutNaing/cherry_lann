@@ -59,6 +59,7 @@ class ServiceTypeManagement extends Component
     public function loadServiceTypes()
     {
         $this->serviceTypes = ServiceType::with('boostTypes')
+            ->orderByDesc('is_active')
             ->orderBy('sort_no')
             ->get();
     }
@@ -99,6 +100,7 @@ class ServiceTypeManagement extends Component
             session()->flash('message', 'Service Group updated successfully.');
         } else {
             $data['sort_no'] = (ServiceType::max('sort_no') ?? 0) + 1;
+            $data['is_active'] = true;
             $serviceType = ServiceType::create($data);
             session()->flash('message', 'Service Group created successfully.');
         }
@@ -129,12 +131,60 @@ class ServiceTypeManagement extends Component
         $this->resetErrorBag();
     }
 
+    // ---------- Status toggle ----------
+
+    public function toggleStatus($serviceTypeId)
+    {
+        $serviceType = ServiceType::findOrFail($serviceTypeId);
+        $serviceType->update(['is_active' => ! $serviceType->is_active]);
+
+        session()->flash('message', 'Service Group ' . ($serviceType->is_active ? 'enabled' : 'disabled') . ' successfully.');
+
+        $this->loadServiceTypes();
+    }
+
     // ---------- Sorting ----------
 
     public function updateOrder($orderedIds)
     {
         foreach ($orderedIds as $index => $id) {
             ServiceType::where('id', $id)->update(['sort_no' => $index + 1]);
+        }
+
+        $this->loadServiceTypes();
+    }
+
+    public function moveUp($serviceTypeId)
+    {
+        $current = ServiceType::findOrFail($serviceTypeId);
+
+        $previous = ServiceType::where('is_active', $current->is_active)
+            ->where('sort_no', '<', $current->sort_no)
+            ->orderByDesc('sort_no')
+            ->first();
+
+        if ($previous) {
+            $currentSort = $current->sort_no;
+            $current->update(['sort_no' => $previous->sort_no]);
+            $previous->update(['sort_no' => $currentSort]);
+        }
+
+        $this->loadServiceTypes();
+    }
+
+    public function moveDown($serviceTypeId)
+    {
+        $current = ServiceType::findOrFail($serviceTypeId);
+
+        $next = ServiceType::where('is_active', $current->is_active)
+            ->where('sort_no', '>', $current->sort_no)
+            ->orderBy('sort_no')
+            ->first();
+
+        if ($next) {
+            $currentSort = $current->sort_no;
+            $current->update(['sort_no' => $next->sort_no]);
+            $next->update(['sort_no' => $currentSort]);
         }
 
         $this->loadServiceTypes();
@@ -229,42 +279,4 @@ class ServiceTypeManagement extends Component
             'serviceTypes' => $this->serviceTypes,
         ]);
     }
-
-    // ---------- Sorting ----------
-
-public function moveUp($serviceTypeId)
-{
-    $current = ServiceType::findOrFail($serviceTypeId);
-
-    $previous = ServiceType::where('sort_no', '<', $current->sort_no)
-        ->orderByDesc('sort_no')
-        ->first();
-
-    if ($previous) {
-        $currentSort = $current->sort_no;
-        $current->update(['sort_no' => $previous->sort_no]);
-        $previous->update(['sort_no' => $currentSort]);
-    }
-
-    $this->loadServiceTypes();
-}
-
-public function moveDown($serviceTypeId)
-{
-    $current = ServiceType::findOrFail($serviceTypeId);
-
-    $next = ServiceType::where('sort_no', '>', $current->sort_no)
-        ->orderBy('sort_no')
-        ->first();
-
-    if ($next) {
-        $currentSort = $current->sort_no;
-        $current->update(['sort_no' => $next->sort_no]);
-        $next->update(['sort_no' => $currentSort]);
-    }
-
-    $this->loadServiceTypes();
-}
-
-
 }

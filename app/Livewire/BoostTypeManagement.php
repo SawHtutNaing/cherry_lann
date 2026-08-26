@@ -26,7 +26,9 @@ class BoostTypeManagement extends Component
 
     public function loadBoostTypes()
     {
-        $this->boostTypes = BoostType::all();
+        $this->boostTypes = BoostType::orderByDesc('is_active')
+            ->orderBy('name')
+            ->get();
     }
 
     public function openModal($boostTypeId = null)
@@ -51,12 +53,15 @@ class BoostTypeManagement extends Component
         try {
             $this->validate();
             $data = ['name' => $this->name];
+
             if ($this->boostTypeId) {
                 $boostType = BoostType::findOrFail($this->boostTypeId);
                 $boostType->update($data);
             } else {
+                $data['is_active'] = true;
                 BoostType::create($data);
             }
+
             $this->loadBoostTypes();
             $this->closeModal();
             session()->flash('success', 'Boost Type ' . ($this->boostTypeId ? 'updated' : 'created') . ' successfully!');
@@ -69,11 +74,23 @@ class BoostTypeManagement extends Component
     {
         try {
             BoostType::findOrFail($boostTypeId)->delete();
-            $this->loadBoostTypes(); // Fixed typo
+            $this->loadBoostTypes();
             session()->flash('success', 'Boost Type deleted successfully!');
         } catch (\Exception $e) {
             session()->flash('error', 'An error occurred while deleting the Boost Type.');
         }
+    }
+
+    // ---------- Status toggle ----------
+
+    public function toggleStatus($boostTypeId)
+    {
+        $boostType = BoostType::findOrFail($boostTypeId);
+        $boostType->update(['is_active' => ! $boostType->is_active]);
+
+        session()->flash('success', 'Boost Type ' . ($boostType->is_active ? 'enabled' : 'disabled') . ' successfully!');
+
+        $this->loadBoostTypes();
     }
 
     public function resetForm()

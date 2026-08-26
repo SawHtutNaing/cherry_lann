@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DataInput;
+use App\Models\DataInputImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -10,46 +11,38 @@ class DataInputImageController extends Controller
 {
     public function upload(Request $request, $id, $type)
     {
+        abort_unless(in_array($type, ['client', 'service']), 404);
+
+        $dataInput = DataInput::where('user_id', auth()->id())->findOrFail($id);
+
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'images'   => 'required|array|min:1',
+            'images.*' => 'image|max:5120', // 5MB each
         ]);
 
-        if (!in_array($type, ['client_side_image', 'service_side_image'])) {
-            return response()->json(['error' => 'Invalid image type.'], 422);
+        $created = [];
+
+        foreach ($request->file('images') as $file) {
+            $path = $file->store("data-inputs/{$type}", 'public');
+
+            $image = $dataInput->images()->create([
+                'type'       => $type,
+                'image_path' => $path,
+            ]);
+
+            $created[] = ['id' => $image->id, 'url' => $image->url];
         }
 
-        $dataInput = DataInput::where('id', $id)
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
-
-        // Delete old image if exists
-        if ($dataInput->$type) {
-            Storage::disk('public')->delete($dataInput->$type);
-        }
-
-        $path = $request->file('image')->store('data-input-images', 'public');
-
-        $dataInput->update([$type => $path]);
-
-        return response()->json([
-            'url' => Storage::disk('public')->url($path),
-        ]);
+        return response()->json(['images' => $created]);
     }
 
-    public function delete($id, $type)
+    public function delete($id, $imageId)
     {
-        if (!in_array($type, ['client_side_image', 'service_side_image'])) {
-            return response()->json(['error' => 'Invalid image type.'], 422);
-        }
+        $dataInput = DataInput::where('user_id', auth()->id())->findOrFail($id);
+        $image = DataInputImage::where('data_input_id', $dataInput->id)->findOrFail($imageId);
 
-        $dataInput = DataInput::where('id', $id)
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
-
-        if ($dataInput->$type) {
-            Storage::disk('public')->delete($dataInput->$type);
-            $dataInput->update([$type => null]);
-        }
+        Storage::disk('public')->delete($image->image_path);
+        $image->delete();
 
         return response()->json(['success' => true]);
     }

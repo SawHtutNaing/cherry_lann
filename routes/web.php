@@ -32,8 +32,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('data-inputs/{dataInputId}/edit',  DataInputForm::class)->name('data-inputs.edit');
 
     // Image upload/delete
-    Route::post('data-inputs/{id}/image/{type}',   [DataInputImageController::class, 'upload'])->name('data-inputs.image.upload');
-    Route::delete('data-inputs/{id}/image/{type}', [DataInputImageController::class, 'delete'])->name('data-inputs.image.delete');
+// NEW
+Route::post('data-inputs/{id}/images/{type}',    [DataInputImageController::class, 'upload'])->name('data-inputs.image.upload');
+Route::delete('data-inputs/{id}/images/{image}', [DataInputImageController::class, 'delete'])->name('data-inputs.image.delete');
 
     // Users
     Route::get('users',                UserManagement::class)->name('users.index');
@@ -128,3 +129,12 @@ use App\Livewire\SiteProfitReport;
 
 // Add inside your existing auth/verified middleware group:
 Route::get('/site-profit-report', SiteProfitReport::class)->name('site-profit-report.index');
+Route::get('/regions', \App\Livewire\RegionManagement::class)->name('regions.index');
+
+
+use App\Http\Controllers\VisaController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('visas', VisaController::class)->except(['show']);
+    Route::delete('visas/{visa}/images/{image}', [VisaController::class, 'destroyImage'])->name('visas.images.destroy');
+});

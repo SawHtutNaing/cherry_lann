@@ -32,6 +32,42 @@
             @enderror
         </div>
 
+        <!-- Region -->
+        <div class="mb-4">
+            <label class="block text-gray-700">Region:</label>
+            <select wire:model="region_id"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Select</option>
+
+                @php
+                    $activeRegions = $regions->where('is_active', true);
+                    $disabledRegions = $regions->where('is_active', false);
+                @endphp
+
+                @if ($activeRegions->count() > 0)
+                    <optgroup label="Active Regions">
+                        @foreach ($activeRegions as $region)
+                            <option value="{{ $region->id }}">{{ $region->name }}</option>
+                        @endforeach
+                    </optgroup>
+                @endif
+
+                @if ($disabledRegions->count() > 0)
+                    <optgroup label="── Disabled Regions ──">
+                        @foreach ($disabledRegions as $region)
+                            <option  class="text-red-500" value="{{ $region->id }}"
+                                @disabled($region->id != $region_id)>
+                                {{ $region->name }}
+                            </option>
+                        @endforeach
+                    </optgroup>
+                @endif
+            </select>
+            @error('region_id')
+                <span class="text-red-500">{{ $message }}</span>
+            @enderror
+        </div>
+
         <!-- ═══════════════ Line Items ═══════════════ -->
         <h2 class="mt-6 mb-2 text-lg font-semibold text-gray-800">Service Items</h2>
 
@@ -53,9 +89,30 @@
                     <select wire:model="items.{{ $index }}.boost_type_id"
                         class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="">Select</option>
-                        @foreach ($boostTypes as $boostType)
-                            <option value="{{ $boostType->id }}">{{ $boostType->name }}</option>
-                        @endforeach
+
+                        @php
+                            $activeBoostTypes = $boostTypes->where('is_active', true);
+                            $disabledBoostTypes = $boostTypes->where('is_active', false);
+                        @endphp
+
+                        @if ($activeBoostTypes->count() > 0)
+                            <optgroup label="Active Service Types">
+                                @foreach ($activeBoostTypes as $boostType)
+                                    <option value="{{ $boostType->id }}">{{ $boostType->name }}</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+
+                        @if ($disabledBoostTypes->count() > 0)
+                            <optgroup label="── Disabled Service Types ──">
+                                @foreach ($disabledBoostTypes as $boostType)
+                                    <option class="text-red-500" value="{{ $boostType->id }}"
+                                        @disabled($boostType->id != $item['boost_type_id'])>
+                                        {{ $boostType->name }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endif
                     </select>
                     @error("items.$index.boost_type_id")
                         <span class="text-red-500">{{ $message }}</span>

@@ -46,15 +46,53 @@
                     </select>
                 </div>
 
-                <div class="w-full md:w-1/4">
-                    <label for="boosttype" class="block text-sm font-medium text-gray-700">Service Type</label>
-                    <select multiple wire:model="boosttype"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        @foreach ($boostTypes as $boostType)
-                            <option value="{{ $boostType->id }}">{{ $boostType->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                <div class="w-full md:w-1/4" x-data="{ open: false }">
+    <style>[x-cloak] { display: none !important; }</style>
+
+    <label class="block text-sm font-medium text-gray-700">Service Type</label>
+
+    <div class="relative">
+        <button type="button" @click="open = !open"
+            class="flex items-center justify-between w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <span class="text-gray-700 truncate">
+                @if (count($boosttype) === 0)
+                    All
+                @elseif (count($boosttype) === 1)
+                    {{ $boostTypes->firstWhere('id', $boosttype[0])->name ?? '1 selected' }}
+                @else
+                    {{ count($boosttype) }} selected
+                @endif
+            </span>
+            <svg class="w-4 h-4 ml-2 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+        </button>
+
+        <div x-show="open" @click.outside="open = false" x-cloak
+            class="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+
+            <div class="flex justify-between px-3 py-2 text-xs border-b border-gray-100">
+                <button type="button"
+                    wire:click="$set('boosttype', [{{ $boostTypes->pluck('id')->implode(',') }}])"
+                    class="text-blue-600 hover:underline">Select All</button>
+                <button type="button" wire:click="$set('boosttype', [])"
+                    class="text-gray-500 hover:underline">Clear</button>
+            </div>
+
+            <div class="p-2 space-y-1 overflow-y-auto max-h-48">
+                @forelse ($boostTypes as $boostType)
+                    <label class="flex items-center gap-2 px-2 py-1 text-sm text-gray-700 rounded cursor-pointer hover:bg-gray-50">
+                        <input type="checkbox" value="{{ $boostType->id }}" wire:model="boosttype"
+                            class="rounded border-gray-300 text-blue-500 focus:ring-blue-400">
+                        {{ $boostType->name }}
+                    </label>
+                @empty
+                    <span class="block px-2 py-1 text-sm text-gray-400">No service types available.</span>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
 
                 <div class="w-full md:w-1/4">
                     <label for="status_at" class="block text-sm font-medium text-gray-700">Status</label>
@@ -83,11 +121,11 @@
     <table class="min-w-full bg-white border border-gray-200 mt-4">
         <thead>
             <tr class="w-full bg-gray-100 border-b">
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Campaing</th>
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Charge</th>
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Refund</th>
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total</th>
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Pending</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Campaing</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Charge</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Refund</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Total</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Pending</th>
             </tr>
         </thead>
         <tbody>
@@ -107,19 +145,19 @@
     <table class="min-w-full bg-white border border-gray-200">
         <thead>
             <tr class="w-full bg-gray-100 border-b">
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">No</th>
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Page Name</th>
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Cus Name</th>
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Serviced By</th>
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600 min-w-[280px]">Items</th>
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Total Amount</th>
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Status</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">No</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Page Name</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Cus Name</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Serviced By</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600 min-w-[280px]">Items</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Total Amount</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Status</th>
 @if ($isExport)
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Remark</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Remark</th>
 @endif
 @if (!$isExport)
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Client Image</th>
-                <th class="px-6 py-3 text-sm font-medium text-left text-gray-600">Cherry Lann Image</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Client Image</th>
+                <th class="px-6 py-3 text-sm font-bold text-center text-gray-600">Cherry Lann Image</th>
 @endif
             </tr>
         </thead>

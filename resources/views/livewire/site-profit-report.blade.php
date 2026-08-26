@@ -58,13 +58,13 @@
             <ul class="pl-5 mb-3 text-sm list-disc">
                 @foreach ($missingProfitLogs as $missing)
                     <li>
-                        Boost type <strong>{{ $missing['boost_type'] }}</strong>
+                        Service Type <strong>{{ $missing['boost_type'] }}</strong>
                         for user <strong>{{ $missing['user'] }}</strong>
                         on <strong>{{ $missing['date'] }}</strong>
                     </li>
                 @endforeach
             </ul>
-            <p class="text-sm">Please add a profit log covering these dates for each user/boost type combination above.</p>
+            <p class="text-sm">Please add a profit log covering these dates for each user/Service Type combination above.</p>
         </div>
     @endif
 
@@ -72,7 +72,7 @@
     @if ($hasGenerated)
         @if (empty($serviceTypeGroups))
             <div class="p-6 text-sm text-center text-gray-500 bg-white border border-gray-200 rounded shadow">
-                No service types with boost types found.
+                No service types with Service Types found.
             </div>
         @else
             @foreach ($serviceTypeGroups as $group)
@@ -95,7 +95,7 @@
                             <thead x-show="open" style="display:none">
                                 <tr class="bg-gray-50 border-b">
                                     <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">No</th>
-                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Boost Type</th>
+                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Service Type</th>
                                     <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Line Total</th>
                                     <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Discount</th>
                                     <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Discount (MMK)</th>

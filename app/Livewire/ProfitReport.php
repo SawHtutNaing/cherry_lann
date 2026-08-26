@@ -9,11 +9,12 @@ use App\Models\DataInputItem;
 use App\Models\ExchangeRateLog;
 use App\Models\UserProfitLog;
 use App\Models\User;
+use App\Models\Visa;
 
 class ProfitReport extends Component
 {
     // Filters
-    public $serviceTypeId;
+    public $serviceTypeIds = []; // now an array for multi-select
     public $startDate;
     public $endDate;
     public $employeeFilter = 'all'; // 'all' | 'individual'
@@ -25,9 +26,12 @@ class ProfitReport extends Component
 
     // Report state
     public $hasGenerated = false;
-    public $reportRows = [];
-    public $reportTotals = [];
-    public $serviceType; // the selected ServiceType model (holds ->type)
+    public $reportGroups = []; // one entry per selected service type
+    public $grandTotals = [];  // combined totals across all selected service types
+
+    // Visa totals for the same date range / employee filter
+    public $visaTotal = 0;
+    public $visaBreakdown = []; // per-user breakdown, only populated when employeeFilter = 'all'
 
     // Validation-style blocking errors (missing logs)
     public $missingExchangeRates = [];
@@ -36,7 +40,7 @@ class ProfitReport extends Component
     public function mount()
     {
         $this->serviceTypes = ServiceType::orderBy('name')->get();
-        $this->users = User::whereIn('role', ['user','admin'])->orderBy('name')->get();
+        $this->users = User::whereIn('role', ['user', 'admin'])->orderBy('name')->get();
         $this->startDate = now()->startOfMonth()->format('Y-m-d');
         $this->endDate = now()->format('Y-m-d');
     }
@@ -44,11 +48,20 @@ class ProfitReport extends Component
     protected function rules()
     {
         return [
-            'serviceTypeId' => 'required|exists:service_types,id',
+            'serviceTypeIds' => 'required|array|min:1',
+            'serviceTypeIds.*' => 'exists:service_types,id',
             'startDate' => 'required|date',
             'endDate' => 'required|date|after_or_equal:startDate',
             'employeeFilter' => 'required|in:all,individual',
             'selectedUserId' => 'required_if:employeeFilter,individual|nullable|exists:users,id',
+        ];
+    }
+
+    protected function messages()
+    {
+        return [
+            'serviceTypeIds.required' => 'Please select at least one service group.',
+            'serviceTypeIds.min' => 'Please select at least one service group.',
         ];
     }
 
@@ -59,76 +72,123 @@ class ProfitReport extends Component
         $this->hasGenerated = false;
         $this->missingExchangeRates = [];
         $this->missingProfitLogs = [];
-        $this->reportRows = [];
-        $this->reportTotals = [];
+        $this->reportGroups = [];
+        $this->visaTotal = 0;
+        $this->visaBreakdown = [];
+        $this->grandTotals = [
+            'line_total' => 0,
+            'discount' => 0,
+            'revenue' => 0,
+            'employee_profit' => 0,
+            'my_profit' => 0,
+        ];
 
-        $this->serviceType = ServiceType::with('boostTypes')->findOrFail($this->serviceTypeId);
-        $isDollar = $this->serviceType->type === 'dollar';
+        $selectedServiceTypes = ServiceType::with('boostTypes')
+            ->whereIn('id', $this->serviceTypeIds)
+            ->orderBy('name')
+            ->get();
 
-        $boostTypeIds = $this->serviceType->boostTypes->pluck('id')->toArray();
-
-        if (empty($boostTypeIds)) {
-            $this->hasGenerated = true; // nothing to show, but not an error
-            return;
-        }
-
-        // Pull all relevant items in one query
-        $itemsQuery = DataInputItem::with('dataInput')
-            ->whereIn('boost_type_id', $boostTypeIds)
-            ->whereBetween('start_date', [$this->startDate, $this->endDate]);
-
-        if ($this->employeeFilter === 'individual' && $this->selectedUserId) {
-            $itemsQuery->whereHas('dataInput', function ($q) {
-                $q->where('user_id', $this->selectedUserId);
-            });
-        }
-
-        $items = $itemsQuery->get();
-
-        // Preload exchange rate logs (dollar only) and profit logs for matching in memory
-        $exchangeLogs = $isDollar
-            ? ExchangeRateLog::where('service_type_id', $this->serviceTypeId)->get()
-            : collect();
-
-        $profitLogs = UserProfitLog::whereIn('boost_type_id', $boostTypeIds)->get();
-
-        // ---- Validation pass: find missing exchange rates / profit logs before computing anything ----
         $missingExchangeSet = [];
         $missingProfitSet = [];
+        $groupsToRender = [];
 
-        foreach ($items as $item) {
-            $userId = optional($item->dataInput)->user_id;
+        foreach ($selectedServiceTypes as $serviceType) {
+            $isDollar = $serviceType->type === 'dollar';
+            $boostTypeIds = $serviceType->boostTypes->pluck('id')->toArray();
 
-            if ($isDollar) {
-                $rate = $this->matchExchangeRate($exchangeLogs, $item->start_date);
-                if (!$rate) {
-                    $key = $item->start_date->format('Y-m-d');
-                    $missingExchangeSet[$key] = $key;
+            if (empty($boostTypeIds)) {
+                // Nothing to compute for this service group, but still show it as empty.
+                $groupsToRender[] = [
+                    'service_type_id' => $serviceType->id,
+                    'service_type_name' => $serviceType->name,
+                    'is_dollar' => $isDollar,
+                    'rows' => [],
+                    'totals' => [
+                        'line_total' => 0,
+                        'discount' => 0,
+                        'revenue' => 0,
+                        'employee_profit' => 0,
+                        'my_profit' => 0,
+                    ],
+                ];
+                continue;
+            }
+
+            $itemsQuery = DataInputItem::with('dataInput')
+                ->whereIn('boost_type_id', $boostTypeIds)
+                ->whereBetween('start_date', [$this->startDate, $this->endDate]);
+
+            if ($this->employeeFilter === 'individual' && $this->selectedUserId) {
+                $itemsQuery->whereHas('dataInput', function ($q) {
+                    $q->where('user_id', $this->selectedUserId);
+                });
+            }
+
+            $items = $itemsQuery->get();
+
+            $exchangeLogs = $isDollar
+                ? ExchangeRateLog::where('service_type_id', $serviceType->id)->get()
+                : collect();
+
+            $profitLogs = UserProfitLog::whereIn('boost_type_id', $boostTypeIds)->get();
+
+            // ---- Validation pass ----
+            foreach ($items as $item) {
+                $userId = optional($item->dataInput)->user_id;
+
+                if ($isDollar) {
+                    $rate = $this->matchExchangeRate($exchangeLogs, $item->start_date);
+                    if (!$rate) {
+                        $key = $serviceType->id . '|' . $item->start_date->format('Y-m-d');
+                        $missingExchangeSet[$key] = [
+                            'service_type' => $serviceType->name,
+                            'date' => $item->start_date->format('Y-m-d'),
+                        ];
+                    }
+                }
+
+                $log = $this->matchProfitLog($profitLogs, $userId, $item->boost_type_id, $item->start_date);
+                if (!$log && $userId) {
+                    $key = $item->boost_type_id . '|' . $userId . '|' . $item->start_date->format('Y-m-d');
+                    $missingProfitSet[$key] = [
+                        'service_type' => $serviceType->name,
+                        'boost_type_id' => $item->boost_type_id,
+                        'user_id' => $userId,
+                        'date' => $item->start_date->format('Y-m-d'),
+                    ];
                 }
             }
 
-            $log = $this->matchProfitLog($profitLogs, $userId, $item->boost_type_id, $item->start_date);
-            if (!$log && $userId) {
-                $key = $item->boost_type_id . '|' . $userId . '|' . $item->start_date->format('Y-m-d');
-                $missingProfitSet[$key] = [
-                    'boost_type_id' => $item->boost_type_id,
-                    'user_id' => $userId,
-                    'date' => $item->start_date->format('Y-m-d'),
-                ];
-            }
+            // Stash everything needed to build rows later (after full validation pass).
+            $groupsToRender[] = [
+                'service_type_id' => $serviceType->id,
+                'service_type_name' => $serviceType->name,
+                'is_dollar' => $isDollar,
+                'boost_type_ids' => $boostTypeIds,
+                'items' => $items,
+                'exchange_logs' => $exchangeLogs,
+                'profit_logs' => $profitLogs,
+            ];
         }
 
         if (!empty($missingExchangeSet)) {
-            $this->missingExchangeRates = collect($missingExchangeSet)->sort()->values()->toArray();
+            $this->missingExchangeRates = collect($missingExchangeSet)
+                ->sortBy(['service_type', 'date'])
+                ->values()
+                ->toArray();
         }
 
         if (!empty($missingProfitSet)) {
-            $boostTypeNames = BoostType::whereIn('id', $boostTypeIds)->pluck('name', 'id');
-            $userNames = User::whereIn('id', array_column($missingProfitSet, 'user_id'))->pluck('name', 'id');
+            $allBoostTypeIds = array_unique(array_column($missingProfitSet, 'boost_type_id'));
+            $allUserIds = array_unique(array_column($missingProfitSet, 'user_id'));
+
+            $boostTypeNames = BoostType::whereIn('id', $allBoostTypeIds)->pluck('name', 'id');
+            $userNames = User::whereIn('id', $allUserIds)->pluck('name', 'id');
 
             $this->missingProfitLogs = collect($missingProfitSet)
                 ->map(function ($row) use ($boostTypeNames, $userNames) {
                     return [
+                        'service_type' => $row['service_type'],
                         'boost_type' => $boostTypeNames[$row['boost_type_id']] ?? 'Unknown',
                         'user' => $userNames[$row['user_id']] ?? 'Unknown',
                         'date' => $row['date'],
@@ -145,74 +205,122 @@ class ProfitReport extends Component
             return;
         }
 
-        // ---- Aggregation pass: build one row per boost type ----
-        $itemsByBoostType = $items->groupBy('boost_type_id');
-        $boostTypes = BoostType::whereIn('id', $boostTypeIds)->orderBy('name')->get();
-
-        $rows = [];
-        $totals = [
-            'line_total' => 0,
-            'discount' => 0,
-            'revenue' => 0,
-            'employee_profit' => 0,
-            'my_profit' => 0,
-        ];
-
-        foreach ($boostTypes as $boostType) {
-            $boostItems = $itemsByBoostType->get($boostType->id, collect());
-
-            $lineTotal = 0;
-            $discount = 0;
-            $revenue = 0;
-            $employeeProfit = 0;
-
-            foreach ($boostItems as $item) {
-                $userId = optional($item->dataInput)->user_id;
-                $lineTotal += (float) $item->line_total;
-
-                if ($isDollar) {
-                    $discount += (float) $item->discount;
-                    $rate = $this->matchExchangeRate($exchangeLogs, $item->start_date);
-                    $revenue += (float) $item->amount * (float) $rate->amount;
-                }
-
-                $log = $this->matchProfitLog($profitLogs, $userId, $item->boost_type_id, $item->start_date);
-                if ($log) {
-                    if ($log->type === 'flat') {
-                        $employeeProfit += (float) $item->amount * (float) $log->amount;
-                    } else { // percentage
-                        $employeeProfit += (float) $item->line_total * ((float) $log->amount / 100);
-                    }
-                }
+        // ---- Aggregation pass: build rows per service group ----
+        foreach ($groupsToRender as $group) {
+            // Already-finished empty group (no boost types) — push as is.
+            if (!isset($group['items'])) {
+                $this->reportGroups[] = $group;
+                continue;
             }
 
-            if ($isDollar) {
-                $myProfit = $revenue - $employeeProfit - $discount;
-            } else {
-                $myProfit = $lineTotal - $employeeProfit;
-            }
+            $isDollar = $group['is_dollar'];
+            $items = $group['items'];
+            $exchangeLogs = $group['exchange_logs'];
+            $profitLogs = $group['profit_logs'];
+            $boostTypeIds = $group['boost_type_ids'];
 
-            $row = [
-                'boost_type_id' => $boostType->id,
-                'boost_type_name' => $boostType->name,
-                'line_total' => $lineTotal,
-                'discount' => $discount,
-                'revenue' => $revenue,
-                'employee_profit' => $employeeProfit,
-                'my_profit' => $myProfit,
+            $itemsByBoostType = $items->groupBy('boost_type_id');
+            $boostTypes = BoostType::whereIn('id', $boostTypeIds)->orderBy('name')->get();
+
+            $rows = [];
+            $totals = [
+                'line_total' => 0,
+                'discount' => 0,
+                'revenue' => 0,
+                'employee_profit' => 0,
+                'my_profit' => 0,
             ];
 
-            $rows[] = $row;
+            foreach ($boostTypes as $boostType) {
+                $boostItems = $itemsByBoostType->get($boostType->id, collect());
 
-            $totals['line_total'] += $lineTotal;
-            $totals['discount'] += $discount;
-            $totals['revenue'] += $revenue;
-            $totals['employee_profit'] += $employeeProfit;
-            $totals['my_profit'] += $myProfit;
+                $lineTotal = 0;
+                $discount = 0;
+                $revenue = 0;
+                $employeeProfit = 0;
+
+                foreach ($boostItems as $item) {
+                    $userId = optional($item->dataInput)->user_id;
+                    $lineTotal += (float) $item->line_total;
+
+                    if ($isDollar) {
+                        $discount += (float) $item->discount;
+                        $rate = $this->matchExchangeRate($exchangeLogs, $item->start_date);
+                        $revenue += (float) $item->amount * (float) $rate->amount;
+                    }
+
+                    $log = $this->matchProfitLog($profitLogs, $userId, $item->boost_type_id, $item->start_date);
+                    if ($log) {
+                        if ($log->type === 'flat') {
+                            $employeeProfit += (float) $item->amount * (float) $log->amount;
+                        } else { // percentage
+                            $employeeProfit += (float) $item->line_total * ((float) $log->amount / 100);
+                        }
+                    }
+                }
+
+                if ($isDollar) {
+                    $myProfit = $revenue - $employeeProfit - $discount;
+                } else {
+                    $myProfit = $lineTotal - $employeeProfit;
+                }
+
+                $rows[] = [
+                    'boost_type_id' => $boostType->id,
+                    'boost_type_name' => $boostType->name,
+                    'line_total' => $lineTotal,
+                    'discount' => $discount,
+                    'revenue' => $revenue,
+                    'employee_profit' => $employeeProfit,
+                    'my_profit' => $myProfit,
+                ];
+
+                $totals['line_total'] += $lineTotal;
+                $totals['discount'] += $discount;
+                $totals['revenue'] += $revenue;
+                $totals['employee_profit'] += $employeeProfit;
+                $totals['my_profit'] += $myProfit;
+            }
+
+            $this->reportGroups[] = [
+                'service_type_id' => $group['service_type_id'],
+                'service_type_name' => $group['service_type_name'],
+                'is_dollar' => $isDollar,
+                'rows' => $rows,
+                'totals' => $totals,
+            ];
+
+            $this->grandTotals['line_total'] += $totals['line_total'];
+            $this->grandTotals['discount'] += $totals['discount'];
+            $this->grandTotals['revenue'] += $totals['revenue'];
+            $this->grandTotals['employee_profit'] += $totals['employee_profit'];
+            $this->grandTotals['my_profit'] += $totals['my_profit'];
         }
 
-        $this->reportRows = $rows;
-        $this->reportTotals = $totals;
+        // ---- Visa totals for the same date range ----
+        $visaQuery = Visa::whereBetween('date', [$this->startDate, $this->endDate]);
+
+        if ($this->employeeFilter === 'individual' && $this->selectedUserId) {
+            $this->visaTotal = (float) $visaQuery->where('user_id', $this->selectedUserId)->sum('amount');
+            $this->visaBreakdown = [];
+        } else {
+            $visas = $visaQuery->with('user')->get();
+            $this->visaTotal = (float) $visas->sum('amount');
+
+            $this->visaBreakdown = $visas->groupBy('user_id')
+                ->map(function ($group) {
+                    $user = optional($group->first()->user);
+                    return [
+                        'user_id' => $user->id ?? null,
+                        'user_name' => $user->name ?? 'N/A',
+                        'total' => (float) $group->sum('amount'),
+                    ];
+                })
+                ->sortBy('user_name')
+                ->values()
+                ->toArray();
+        }
+
         $this->hasGenerated = true;
     }
 
