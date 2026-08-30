@@ -70,24 +70,48 @@ class Report extends Component
             });
     }
 
-    private function updateAggregates(): void
-    {
-        $query = $this->baseQuery();
+  private function updateAggregates(): void
+{
+    $query = $this->baseQuery();
 
-        $this->totalCount = (clone $query)->count();
+    $this->totalCount = (clone $query)->count();
 
-        $agg = (clone $query)->selectRaw('
-            COALESCE(SUM(CASE WHEN status = 1 THEN total_amount END), 0) as charges,
-            COALESCE(SUM(CASE WHEN status = 2 THEN total_amount END), 0) as refund,
-            COALESCE(SUM(CASE WHEN status = 3 THEN total_amount END), 0) as pending,
-            COALESCE(SUM(total_amount), 0) as overall
-        ')->first();
+    // Charge/Refund/Total/Pending are now driven by items.amount rather than
+    // data_inputs.total_amount, so we sum at the item level (joined back to
+    // data_inputs for status/user/customer filters) instead of the record level.
+    $itemsQuery = \App\Models\DataInputItem::query()
+        ->join('data_inputs', 'data_inputs.id', '=', 'data_input_items.data_input_id')
+        ->when($this->startDate && $this->endDate, function ($q) {
+            $q->whereBetween('data_input_items.start_date', [$this->startDate, $this->endDate]);
+        })
+        ->when($this->service_by, function ($q) {
+            $q->where('data_inputs.user_id', $this->service_by);
+        })
+        ->when(!empty($this->boosttype), function ($q) {
+            $q->whereIn('data_input_items.boost_type_id', $this->boosttype);
+        })
+        ->when($this->cus_name_search, function ($q) {
+            $q->where('data_inputs.customer_name', 'like', '%' . $this->cus_name_search . '%');
+        })
+        ->when($this->status_at, function ($q) {
+            $q->where('data_inputs.status', $this->status_at);
+        })
+        ->when($this->days_count !== null && $this->days_count !== '', function ($q) {
+            $q->whereRaw('DATEDIFF(CURDATE(), data_inputs.created_at) >= ?', [(int) $this->days_count]);
+        });
 
-        $this->charges = (float) $agg->charges;
-        $this->refund = (float) $agg->refund;
-        $this->pending_total = (float) $agg->pending;
-        $this->overall_total = (float) $agg->overall;
-    }
+    $agg = $itemsQuery->selectRaw('
+        COALESCE(SUM(CASE WHEN data_inputs.status = 1 THEN data_input_items.amount END), 0) as charges,
+        COALESCE(SUM(CASE WHEN data_inputs.status = 2 THEN data_input_items.amount END), 0) as refund,
+        COALESCE(SUM(CASE WHEN data_inputs.status = 3 THEN data_input_items.amount END), 0) as pending,
+        COALESCE(SUM(data_input_items.amount), 0) as overall
+    ')->first();
+
+    $this->charges = (float) $agg->charges;
+    $this->refund = (float) $agg->refund;
+    $this->pending_total = (float) $agg->pending;
+    $this->overall_total = (float) $agg->overall;
+}
 
     public function filterData()
     {
