@@ -88,14 +88,14 @@
 
             <div class="p-2 space-y-1 overflow-y-auto max-h-48">
                 @forelse ($boostTypes as $boostType)
-                    <label class="flex items-center gap-2 px-2 py-1 text-sm text-gray-700 rounded cursor-pointer hover:bg-gray-50">
-                        <input type="checkbox" value="{{ $boostType->id }}" wire:model="boosttype"
-                            class="rounded border-gray-300 text-blue-500 focus:ring-blue-400">
-                        {{ $boostType->name }}
-                    </label>
-                @empty
-                    <span class="block px-2 py-1 text-sm text-gray-400">No service types available.</span>
-                @endforelse
+    <label wire:key="boosttype-{{ $boostType->id }}" class="flex items-center gap-2 px-2 py-1 text-sm text-gray-700 rounded cursor-pointer hover:bg-gray-50">
+        <input type="checkbox" value="{{ $boostType->id }}" wire:model.live="boosttype"
+            class="rounded border-gray-300 text-blue-500 focus:ring-blue-400">
+        {{ $boostType->name }}
+    </label>
+@empty
+    <span class="block px-2 py-1 text-sm text-gray-400">No service types available.</span>
+@endforelse
             </div>
         </div>
     </div>
