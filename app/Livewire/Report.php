@@ -139,11 +139,12 @@ class Report extends Component
                 'user',
                 'clientImages',
                 'serviceImages',
-                'items' => function ($q) {
-                    $q->when(!empty($this->boosttype), function ($iq) {
-                        $iq->whereIn('boost_type_id', $this->boosttype);
-                    })->with('boostType');
-                },
+               'items' => function ($q) {
+    $ids = array_filter((array) $this->boosttype, fn($v) => $v !== '' && $v !== null);
+    $q->when(!empty($ids), function ($iq) use ($ids) {
+        $iq->whereIn('boost_type_id', $ids);
+    })->with('boostType');
+},
             ])
             ->orderByDesc('created_at')
             ->get();

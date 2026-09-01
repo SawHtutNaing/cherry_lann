@@ -173,7 +173,7 @@
         </thead>
         <tbody>
             @foreach ($dataInputs as $dataInput)
-                <tr class="border-b align-top">
+                <tr wire:key="datainput-row-{{ $dataInput->id }}-{{ implode('-', $boosttype) }}" class="border-b align-top">
                     <td class="px-6 py-4 text-sm text-center text-gray-800">
                         {{ $isExport ? $loop->iteration : (($dataInputs->currentPage() - 1) * $dataInputs->perPage() + $loop->iteration) }}
                     </td>
