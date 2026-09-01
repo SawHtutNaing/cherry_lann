@@ -125,46 +125,56 @@ class Report extends Component
         }
     }
 
-    public function reprotExcel()
-    {
-        try {
-            ini_set('memory_limit', '1024M');
-            set_time_limit(300);
+ public function reprotExcel()
+{
+    try {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
 
-            $this->updateAggregates();
-
-            $exportData = $this->baseQuery()
-                ->with(['user', 'items.boostType'])
-                ->orderByDesc('created_at')
-                ->get();
-
-            $fileName = 'exports/cherry_lann_' . now()->format('Ymd_His') . '.xlsx';
-
-            Excel::store(
-                new DataExport($exportData, $this->charges, $this->refund, $this->pending_total, $this->overall_total),
-                $fileName,
-                'public'
-            );
-
-            $this->dispatch('excel-ready', url: Storage::disk('public')->url($fileName));
-        } catch (Throwable $e) {
-            report($e);
-            $this->dispatch('excel-error', message: 'Export failed: ' . $e->getMessage());
-        }
-    }
-
-    public function render()
-    {
         $this->updateAggregates();
 
-        $dataInputs = $this->baseQuery()
-            ->with(['user', 'items.boostType', 'clientImages', 'serviceImages'])
+        $exportData = $this->baseQuery()
+            ->with(['user', 'clientImages', 'serviceImages', 'items' => function ($q) {
+                $q->when(!empty($this->boosttype), function ($iq) {
+                    $iq->whereIn('boost_type_id', $this->boosttype);
+                })->with('boostType');
+            }])
             ->orderByDesc('created_at')
-            ->paginate(25);
+            ->get();
 
-        return view('livewire.report', [
-            'dataInputs' => $dataInputs,
-            'isExport'   => false,
-        ]);
+        $fileName = 'exports/cherry_lann_' . now()->format('Ymd_His') . '.xlsx';
+
+        Excel::store(
+            new DataExport($exportData, $this->charges, $this->refund, $this->pending_total, $this->overall_total),
+            $fileName,
+            'public'
+        );
+
+        $this->dispatch('excel-ready', url: Storage::disk('public')->url($fileName));
+    } catch (Throwable $e) {
+        report($e);
+        $this->dispatch('excel-error', message: 'Export failed: ' . $e->getMessage());
     }
+}
+
+
+
+public function render()
+{
+    $this->updateAggregates();
+
+    $dataInputs = $this->baseQuery()
+        ->with(['user', 'clientImages', 'serviceImages', 'items' => function ($q) {
+            $q->when(!empty($this->boosttype), function ($iq) {
+                $iq->whereIn('boost_type_id', $this->boosttype);
+            })->with('boostType');
+        }])
+        ->orderByDesc('created_at')
+        ->paginate(25);
+
+    return view('livewire.report', [
+        'dataInputs' => $dataInputs,
+        'isExport'   => false,
+    ]);
+}
 }

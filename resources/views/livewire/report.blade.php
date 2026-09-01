@@ -198,7 +198,7 @@
                         </div>
                     </td>
 
-                    <td class="px-6 py-4 text-sm font-semibold text-center text-gray-800">{{ number_format($dataInput->total_amount) }}</td>
+                    <td class="px-6 py-4 text-sm font-semibold text-center text-gray-800">{{ number_format($dataInput->items->sum('line_total')) }}</td>
 
                     {{-- NEW — Days column, same color-coded badge as the dashboard --}}
                     <td class="px-6 py-4 text-sm text-center">
