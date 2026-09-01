@@ -94,10 +94,7 @@
                                     <label class="flex items-center gap-2 px-2 py-1 text-sm text-gray-700 rounded cursor-pointer hover:bg-gray-50">
                                         <input type="checkbox"
                                             value="{{ $boostType->id }}"
-                                            @change="$wire.set('boosttype', $event.target.checked
-                                                ? [...@js($boosttype), '{{ $boostType->id }}']
-                                                : @js($boosttype).filter(v => v != '{{ $boostType->id }}'))"
-                                            @checked(in_array($boostType->id, $boosttype))
+                                            wire:model="boosttype"
                                             class="rounded border-gray-300 text-blue-500 focus:ring-blue-400">
                                         {{ $boostType->name }}
                                     </label>
@@ -133,7 +130,7 @@
 
         </div>
     @endif
-<pre class="bg-yellow-100 p-2 text-xs">DEBUG boosttype: {{ json_encode($boosttype) }}</pre>
+
     <table class="min-w-full bg-white border border-gray-200 mt-4">
         <thead>
             <tr class="w-full bg-gray-100 border-b">
