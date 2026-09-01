@@ -124,7 +124,7 @@
 
         </div>
     @endif
-
+<pre class="bg-yellow-100 p-2 text-xs">DEBUG boosttype: {{ json_encode($boosttype) }}</pre>
     <table class="min-w-full bg-white border border-gray-200 mt-4">
         <thead>
             <tr class="w-full bg-gray-100 border-b">
