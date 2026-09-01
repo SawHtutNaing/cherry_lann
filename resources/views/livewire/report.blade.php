@@ -54,29 +54,48 @@
                 </div>
 
                 <div class="w-full md:w-1/4">
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block text-sm font-medium text-gray-700">Service Type</label>
-                        <div class="flex gap-2 text-xs">
-                            <button type="button"
-                                wire:click="$set('boosttype', [{{ $boostTypes->pluck('id')->implode(',') }}])"
-                                class="font-medium text-blue-600 hover:text-blue-800 hover:underline">Select All</button>
-                            <span class="text-gray-300">|</span>
-                            <button type="button" wire:click="$set('boosttype', [])"
-                                class="font-medium text-gray-500 hover:text-gray-700 hover:underline">Clear</button>
+                    <label class="block text-sm font-medium text-gray-700">Service Type</label>
+
+                    <details class="relative group">
+                        <summary class="flex items-center justify-between w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm cursor-pointer list-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <span class="text-gray-700 truncate">
+                                @if (count($boosttype) === 0)
+                                    All
+                                @elseif (count($boosttype) === 1)
+                                    {{ $boostTypes->firstWhere('id', $boosttype[0])->name ?? '1 selected' }}
+                                @else
+                                    {{ count($boosttype) }} selected
+                                @endif
+                            </span>
+                            <svg class="w-4 h-4 ml-2 text-gray-400 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </summary>
+
+                        <div class="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                            <div class="flex justify-between px-3 py-2 text-xs border-b border-gray-100">
+                                <button type="button"
+                                    wire:click="$set('boosttype', [{{ $boostTypes->pluck('id')->implode(',') }}])"
+                                    class="text-blue-600 hover:underline">Select All</button>
+                                <button type="button" wire:click="$set('boosttype', [])"
+                                    class="text-gray-500 hover:underline">Clear</button>
+                            </div>
+
+                            <div class="p-2 space-y-1 overflow-y-auto max-h-48">
+                                @forelse ($boostTypes as $boostType)
+                                    <label class="flex items-center gap-2 px-2 py-1 text-sm text-gray-700 rounded cursor-pointer hover:bg-gray-50">
+                                        <input type="checkbox"
+                                            value="{{ $boostType->id }}"
+                                            wire:model="boosttype"
+                                            class="rounded border-gray-300 text-blue-500 focus:ring-blue-400">
+                                        {{ $boostType->name }}
+                                    </label>
+                                @empty
+                                    <span class="block px-2 py-1 text-sm text-gray-400">No service types available.</span>
+                                @endforelse
+                            </div>
                         </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm max-h-32 overflow-y-auto">
-                        @forelse ($boostTypes as $boostType)
-                            <label class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer hover:text-gray-900">
-                                <input type="checkbox" value="{{ $boostType->id }}"
-                                    wire:model="boosttype"
-                                    class="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-400">
-                                <span class="truncate">{{ $boostType->name }}</span>
-                            </label>
-                        @empty
-                            <span class="col-span-2 text-sm text-gray-400">No service types available.</span>
-                        @endforelse
-                    </div>
+                    </details>
                 </div>
 
                 <div class="w-full md:w-1/4">
