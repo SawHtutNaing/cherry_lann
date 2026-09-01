@@ -125,7 +125,8 @@ class Report extends Component
         }
     }
 
- public function reprotExcel()
+
+    public function reprotExcel()
 {
     try {
         ini_set('memory_limit', '1024M');
@@ -134,11 +135,16 @@ class Report extends Component
         $this->updateAggregates();
 
         $exportData = $this->baseQuery()
-            ->with(['user', 'clientImages', 'serviceImages', 'items' => function ($q) {
-                $q->when(!empty($this->boosttype), function ($iq) {
-                    $iq->whereIn('boost_type_id', $this->boosttype);
-                })->with('boostType');
-            }])
+            ->with([
+                'user',
+                'clientImages',
+                'serviceImages',
+                'items' => function ($q) {
+                    $q->when(!empty($this->boosttype), function ($iq) {
+                        $iq->whereIn('boost_type_id', $this->boosttype);
+                    })->with('boostType');
+                },
+            ])
             ->orderByDesc('created_at')
             ->get();
 
@@ -158,17 +164,22 @@ class Report extends Component
 }
 
 
-
 public function render()
 {
     $this->updateAggregates();
 
     $dataInputs = $this->baseQuery()
-        ->with(['user', 'clientImages', 'serviceImages', 'items' => function ($q) {
-            $q->when(!empty($this->boosttype), function ($iq) {
-                $iq->whereIn('boost_type_id', $this->boosttype);
-            })->with('boostType');
-        }])
+        ->with([
+            'user',
+            'clientImages',
+            'serviceImages',
+           'items' => function ($q) {
+    $ids = array_filter((array) $this->boosttype, fn($v) => $v !== '' && $v !== null);
+    $q->when(!empty($ids), function ($iq) use ($ids) {
+        $iq->whereIn('boost_type_id', $ids);
+    })->with('boostType');
+},
+        ])
         ->orderByDesc('created_at')
         ->paginate(25);
 
@@ -177,4 +188,5 @@ public function render()
         'isExport'   => false,
     ]);
 }
+
 }
