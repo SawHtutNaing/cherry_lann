@@ -53,57 +53,19 @@
                     </select>
                 </div>
 
-                {{-- ── Service Type dropdown — FIXED: uses $wire.set() via Alpine @change
-                     instead of wire:model on the checkbox, so Alpine's x-show wrapper
-                     can no longer swallow the change event before Livewire sees it ── --}}
-                <div class="w-full md:w-1/4" x-data="{ open: false }">
-                    <style>[x-cloak] { display: none !important; }</style>
-
-                    <label class="block text-sm font-medium text-gray-700">Service Type</label>
-
-                    <div class="relative">
-                        <button type="button" @click="open = !open"
-                            class="flex items-center justify-between w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <span class="text-gray-700 truncate">
-                                @if (count($boosttype) === 0)
-                                    All
-                                @elseif (count($boosttype) === 1)
-                                    {{ $boostTypes->firstWhere('id', $boosttype[0])->name ?? '1 selected' }}
-                                @else
-                                    {{ count($boosttype) }} selected
-                                @endif
-                            </span>
-                            <svg class="w-4 h-4 ml-2 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-
-                        <div x-show="open" @click.outside="open = false" x-cloak
-                            class="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-
-                            <div class="flex justify-between px-3 py-2 text-xs border-b border-gray-100">
-                                <button type="button"
-                                    wire:click="$set('boosttype', [{{ $boostTypes->pluck('id')->implode(',') }}])"
-                                    class="text-blue-600 hover:underline">Select All</button>
-                                <button type="button" wire:click="$set('boosttype', [])"
-                                    class="text-gray-500 hover:underline">Clear</button>
-                            </div>
-
-                            <div class="p-2 space-y-1 overflow-y-auto max-h-48">
-                                @foreach ($boostTypes as $boostType)
-                                    <label class="flex items-center gap-2 px-2 py-1 text-sm text-gray-700 rounded cursor-pointer hover:bg-gray-50">
-                                        <input type="checkbox"
-                                            value="{{ $boostType->id }}"
-                                            wire:model="boosttype"
-                                            class="rounded border-gray-300 text-blue-500 focus:ring-blue-400">
-                                        {{ $boostType->name }}
-                                    </label>
-                                @endforeach
-                                @if($boostTypes->isEmpty())
-                                    <span class="block px-2 py-1 text-sm text-gray-400">No service types available.</span>
-                                @endif
-                            </div>
-                        </div>
+                <div class="w-full md:w-1/4">
+                    <label class="block mb-1 text-sm font-medium text-gray-700">Service Type</label>
+                    <div class="grid grid-cols-1 gap-2 p-3 border border-gray-300 rounded max-h-40 overflow-y-auto">
+                        @forelse ($boostTypes as $boostType)
+                            <label class="flex items-center gap-2 text-sm text-gray-700">
+                                <input type="checkbox" value="{{ $boostType->id }}"
+                                    wire:model="boosttype"
+                                    class="rounded border-gray-300 text-blue-500 focus:ring-blue-400">
+                                {{ $boostType->name }}
+                            </label>
+                        @empty
+                            <span class="text-sm text-gray-400">No service types available.</span>
+                        @endforelse
                     </div>
                 </div>
 
