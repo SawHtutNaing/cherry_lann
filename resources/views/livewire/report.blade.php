@@ -54,17 +54,27 @@
                 </div>
 
                 <div class="w-full md:w-1/4">
-                    <label class="block mb-1 text-sm font-medium text-gray-700">Service Type</label>
-                    <div class="grid grid-cols-1 gap-2 p-3 border border-gray-300 rounded max-h-40 overflow-y-auto">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-sm font-medium text-gray-700">Service Type</label>
+                        <div class="flex gap-2 text-xs">
+                            <button type="button"
+                                wire:click="$set('boosttype', [{{ $boostTypes->pluck('id')->implode(',') }}])"
+                                class="font-medium text-blue-600 hover:text-blue-800 hover:underline">Select All</button>
+                            <span class="text-gray-300">|</span>
+                            <button type="button" wire:click="$set('boosttype', [])"
+                                class="font-medium text-gray-500 hover:text-gray-700 hover:underline">Clear</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm max-h-32 overflow-y-auto">
                         @forelse ($boostTypes as $boostType)
-                            <label class="flex items-center gap-2 text-sm text-gray-700">
+                            <label class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer hover:text-gray-900">
                                 <input type="checkbox" value="{{ $boostType->id }}"
                                     wire:model="boosttype"
-                                    class="rounded border-gray-300 text-blue-500 focus:ring-blue-400">
-                                {{ $boostType->name }}
+                                    class="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-2 focus:ring-blue-400">
+                                <span class="truncate">{{ $boostType->name }}</span>
                             </label>
                         @empty
-                            <span class="text-sm text-gray-400">No service types available.</span>
+                            <span class="col-span-2 text-sm text-gray-400">No service types available.</span>
                         @endforelse
                     </div>
                 </div>
