@@ -53,11 +53,12 @@
                     </select>
                 </div>
 
+                          {{-- ── Service Type — accordion on mobile, dropdown on desktop ── --}}
                 <div class="w-full md:w-1/4">
                     <label class="block text-sm font-medium text-gray-700">Service Type</label>
 
-                    <details class="relative group">
-                        <summary class="flex items-center justify-between w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm cursor-pointer list-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <details id="serviceTypeDetails" class="group md:relative">
+                        <summary class="flex items-center justify-between w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm cursor-pointer list-none select-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 group-open:rounded-b-none md:group-open:rounded-b-lg">
                             <span class="text-gray-700 truncate">
                                 @if (count($boosttype) === 0)
                                     All
@@ -67,35 +68,59 @@
                                     {{ count($boosttype) }} selected
                                 @endif
                             </span>
-                            <svg class="w-4 h-4 ml-2 text-gray-400 shrink-0 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="w-4 h-4 ml-2 text-gray-400 shrink-0 transition-transform duration-200 group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </summary>
 
-                        <div class="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                        {{-- static on mobile (pushes content down) · absolute on md+ (floats) --}}
+                        <div class="static w-full bg-white border border-t-0 border-gray-300 rounded-b-lg shadow-sm
+                                    md:absolute md:z-20 md:mt-1 md:border-t md:rounded-lg md:shadow-lg">
                             <div class="flex justify-between px-3 py-2 text-xs border-b border-gray-100">
                                 <button type="button"
                                     wire:click="$set('boosttype', [{{ $boostTypes->pluck('id')->implode(',') }}])"
-                                    class="text-blue-600 hover:underline">Select All</button>
+                                    class="font-semibold text-blue-600 hover:underline">Select All</button>
                                 <button type="button" wire:click="$set('boosttype', [])"
-                                    class="text-gray-500 hover:underline">Clear</button>
+                                    class="font-semibold text-gray-500 hover:underline">Clear</button>
                             </div>
 
-                            <div class="p-2 space-y-1 overflow-y-auto max-h-48">
+                            <div class="p-2 space-y-0.5 overflow-y-auto max-h-64 md:max-h-48 overscroll-contain">
                                 @forelse ($boostTypes as $boostType)
-                                    <label class="flex items-center gap-2 px-2 py-1 text-sm text-gray-700 rounded cursor-pointer hover:bg-gray-50">
+                                    <label class="flex items-center gap-2.5 px-2 py-2.5 md:py-1 text-sm text-gray-700 rounded cursor-pointer hover:bg-gray-50 active:bg-gray-100">
                                         <input type="checkbox"
                                             value="{{ $boostType->id }}"
                                             wire:model="boosttype"
-                                            class="rounded border-gray-300 text-blue-500 focus:ring-blue-400">
+                                            class="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-blue-400">
                                         {{ $boostType->name }}
                                     </label>
                                 @empty
                                     <span class="block px-2 py-1 text-sm text-gray-400">No service types available.</span>
                                 @endforelse
                             </div>
+
+                            {{-- Mobile-only Done button so the panel is easy to close with a thumb --}}
+                            <div class="p-2 border-t border-gray-100 md:hidden">
+                                <button type="button" onclick="document.getElementById('serviceTypeDetails').removeAttribute('open')"
+                                    class="w-full px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 active:scale-95 transition-transform">
+                                    Done
+                                </button>
+                            </div>
                         </div>
                     </details>
+
+                    {{-- Selected chips --}}
+                    @if (count($boosttype))
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            @foreach ($boostTypes->whereIn('id', $boosttype) as $selected)
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                                    {{ $selected->name }}
+                                    <button type="button"
+                                        wire:click="$set('boosttype', {{ json_encode(array_values(array_diff($boosttype, [(string) $selected->id, $selected->id]))) }})"
+                                        class="text-blue-400 hover:text-blue-700">✕</button>
+                                </span>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
 
                 <div class="w-full md:w-1/4">
@@ -597,5 +622,13 @@
             });
         });
     </script>
+    <script>
+    document.addEventListener('click', e => {
+        const d = document.getElementById('serviceTypeDetails');
+        if (d && d.hasAttribute('open') && !d.contains(e.target) && window.innerWidth >= 768) {
+            d.removeAttribute('open');
+        }
+    });
+</script>
     @endif
 </div>

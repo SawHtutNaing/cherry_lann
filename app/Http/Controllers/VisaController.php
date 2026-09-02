@@ -10,14 +10,33 @@ use Illuminate\Support\Facades\Storage;
 
 class VisaController extends Controller
 {
-    public function index()
-    {
-        $visas = Visa::with(['user', 'images'])
-            ->orderByDesc('created_at')
-            ->paginate(20);
 
-        return view('visas.index', compact('visas'));
-    }
+
+    public function index(Request $request)
+{
+    $request->validate([
+        'from_date' => 'nullable|date',
+        'to_date'   => 'nullable|date|after_or_equal:from_date',
+    ]);
+
+    $from = $request->input('from_date');
+    $to   = $request->input('to_date');
+
+    $query = Visa::with(['user', 'images'])
+        ->when($from, fn ($q) => $q->whereDate('date', '>=', $from))
+        ->when($to,   fn ($q) => $q->whereDate('date', '<=', $to));
+
+    // Totals across the whole filtered set (not just the current page)
+    $totalAmount = (clone $query)->sum('amount');
+    $totalCount  = (clone $query)->count();
+
+    $visas = $query->orderByDesc('date')
+        ->orderByDesc('created_at')
+        ->paginate(20)
+        ->withQueryString(); // keeps filters when paging
+
+    return view('visas.index', compact('visas', 'totalAmount', 'totalCount', 'from', 'to'));
+}
 
     public function create()
     {

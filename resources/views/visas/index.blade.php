@@ -12,6 +12,73 @@
         </a>
     </div>
 
+    {{-- ── Summary cards ─────────────────────────────────────────────── --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div class="p-5 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <p class="text-xs font-semibold tracking-wide text-gray-500 uppercase">Total Amount</p>
+            <p class="mt-1 text-3xl font-bold text-gray-800">
+                {{ number_format($totalAmount) }}
+                <span class="text-lg font-semibold text-gray-500">Ks</span>
+            </p>
+            @if ($from || $to)
+                <p class="mt-1 text-xs text-gray-400">
+                    {{ $from ? \Carbon\Carbon::parse($from)->format('d/m/Y') : 'Start' }}
+                    &ndash;
+                    {{ $to ? \Carbon\Carbon::parse($to)->format('d/m/Y') : 'Now' }}
+                </p>
+            @else
+                <p class="mt-1 text-xs text-gray-400">All records</p>
+            @endif
+        </div>
+
+        <div class="p-5 bg-white border border-gray-200 rounded-lg shadow-sm">
+            <p class="text-xs font-semibold tracking-wide text-gray-500 uppercase">Total Records</p>
+            <p class="mt-1 text-3xl font-bold text-gray-800">{{ number_format($totalCount) }}</p>
+            <p class="mt-1 text-xs text-gray-400">Showing {{ $visas->count() }} on this page</p>
+        </div>
+    </div>
+
+    {{-- ── Date filter ───────────────────────────────────────────────── --}}
+    <form method="GET" action="{{ route('visas.index') }}"
+        class="flex flex-col gap-3 p-4 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:flex-row sm:items-end">
+        <div class="flex-1">
+            <label for="from_date" class="block mb-1 text-xs font-semibold text-gray-600">From Date</label>
+            <input type="date" name="from_date" id="from_date" value="{{ $from }}"
+                class="w-full px-3 py-2 text-sm border-gray-300 rounded shadow-sm focus:border-blue-400 focus:ring-blue-400">
+        </div>
+
+        <div class="flex-1">
+            <label for="to_date" class="block mb-1 text-xs font-semibold text-gray-600">To Date</label>
+            <input type="date" name="to_date" id="to_date" value="{{ $to }}"
+                class="w-full px-3 py-2 text-sm border-gray-300 rounded shadow-sm focus:border-blue-400 focus:ring-blue-400">
+        </div>
+
+        <div class="flex gap-2">
+            <button type="submit"
+                class="px-4 py-2 text-sm text-white bg-blue-500 rounded shadow hover:bg-blue-400">Filter</button>
+            <a href="{{ route('visas.index') }}"
+                class="px-4 py-2 text-sm text-gray-700 bg-gray-100 border border-gray-300 rounded shadow hover:bg-gray-200">Reset</a>
+        </div>
+    </form>
+
+    {{-- ── Quick ranges ──────────────────────────────────────────────── --}}
+    @php
+        $ranges = [
+            'Today'      => [now()->toDateString(), now()->toDateString()],
+            'This Month' => [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()],
+            'Last Month' => [now()->subMonth()->startOfMonth()->toDateString(), now()->subMonth()->endOfMonth()->toDateString()],
+            'This Year'  => [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()],
+        ];
+    @endphp
+    <div class="flex flex-wrap gap-2 mb-6 text-xs">
+        @foreach ($ranges as $label => [$rFrom, $rTo])
+            <a href="{{ route('visas.index', ['from_date' => $rFrom, 'to_date' => $rTo]) }}"
+                class="px-3 py-1 rounded-full border {{ $from === $rFrom && $to === $rTo ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50' }}">
+                {{ $label }}
+            </a>
+        @endforeach
+    </div>
+
     <div class="overflow-x-auto">
         <table class="min-w-full bg-white border border-gray-200">
             <thead>
@@ -71,10 +138,20 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-8 text-sm text-center text-gray-400">No visas found.</td>
+                        <td colspan="8" class="px-6 py-8 text-sm text-center text-gray-400">No visas found for this date range.</td>
                     </tr>
                 @endforelse
             </tbody>
+
+            @if ($visas->count())
+                <tfoot>
+                    <tr class="bg-gray-50 border-t-2 border-gray-300">
+                        <td colspan="2" class="px-6 py-3 text-sm font-bold text-right text-gray-700">Total (filtered)</td>
+                        <td class="px-6 py-3 text-sm font-bold text-center text-gray-900">{{ number_format($totalAmount) }} Ks</td>
+                        <td colspan="5"></td>
+                    </tr>
+                </tfoot>
+            @endif
         </table>
     </div>
 
