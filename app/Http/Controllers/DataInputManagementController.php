@@ -170,39 +170,45 @@ class DataInputManagementController extends Controller
         }
     }
 
-    public function exportDatabase()
-    {
-        $ds   = DIRECTORY_SEPARATOR;
-        $path = storage_path('app' . $ds . 'backups');
+   public function exportDatabase()
+{
+    $ds   = DIRECTORY_SEPARATOR;
+    $path = storage_path('app' . $ds . 'backups');
 
-        if (!is_dir($path)) {
-            mkdir($path, 0755, true);
-        }
-
-        $filename = 'backup-' . Carbon::now()->format('Y-m-d-H-i-s') . '.sql';
-        $fullPath = $path . $ds . $filename;
-
-        $tables    = DB::select('SHOW TABLES');
-        $dbName    = config('database.connections.mysql.database');
-        $key       = 'Tables_in_' . $dbName;
-        $sqlScript = '';
-
-        foreach ($tables as $table) {
-            $tableName = $table->$key;
-            $create    = DB::select("SHOW CREATE TABLE `$tableName`")[0]->{'Create Table'};
-            $sqlScript .= "DROP TABLE IF EXISTS `$tableName`;\n$create;\n\n";
-
-            $rows = DB::table($tableName)->get();
-            foreach ($rows as $row) {
-                $values     = array_map(fn($v) => DB::getPdo()->quote($v), (array) $row);
-                $sqlScript .= "INSERT INTO `$tableName` VALUES (" . implode(',', $values) . ");\n";
-            }
-
-            $sqlScript .= "\n\n";
-        }
-
-        file_put_contents($fullPath, $sqlScript);
-
-        return response()->download($fullPath)->deleteFileAfterSend(true);
+    if (!is_dir($path)) {
+        mkdir($path, 0755, true);
     }
+
+    $filename = 'backup-' . Carbon::now()->format('Y-m-d-H-i-s') . '.sql';
+    $fullPath = $path . $ds . $filename;
+
+    $tables    = DB::select('SHOW TABLES');
+    $dbName    = config('database.connections.mysql.database');
+    $key       = 'Tables_in_' . $dbName;
+
+    // Prepend session-level settings so the dump imports cleanly
+    $sqlScript = "SET SESSION sql_mode = (SELECT REPLACE(REPLACE(@@sql_mode,'STRICT_TRANS_TABLES',''),'STRICT_ALL_TABLES',''));\n";
+    $sqlScript .= "SET FOREIGN_KEY_CHECKS = 0;\n\n";
+
+    foreach ($tables as $table) {
+        $tableName = $table->$key;
+        $create    = DB::select("SHOW CREATE TABLE `$tableName`")[0]->{'Create Table'};
+        $sqlScript .= "DROP TABLE IF EXISTS `$tableName`;\n$create;\n\n";
+
+        $rows = DB::table($tableName)->get();
+        foreach ($rows as $row) {
+            $values     = array_map(fn($v) => DB::getPdo()->quote($v), (array) $row);
+            $sqlScript .= "INSERT INTO `$tableName` VALUES (" . implode(',', $values) . ");\n";
+        }
+
+        $sqlScript .= "\n\n";
+    }
+
+    // Re-enable FK checks at the end, good practice for a clean dump
+    $sqlScript .= "SET FOREIGN_KEY_CHECKS = 1;\n";
+
+    file_put_contents($fullPath, $sqlScript);
+
+    return response()->download($fullPath)->deleteFileAfterSend(true);
+}
 }
