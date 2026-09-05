@@ -45,7 +45,7 @@ class UserProfitLogManagement extends Component
         }
 
         $this->user = $user;
-        $this->boostTypes = BoostType::all();
+        $this->boostTypes = BoostType::orderByDesc('is_active')->orderBy('name')->get();
         $this->loadProfitLogs();
     }
 

@@ -16,6 +16,7 @@ class SiteProfitReport extends Component
     // Filters
     public $startDate;
     public $endDate;
+    public $openGroups = [];
 
     // State
     public $hasGenerated = false;
@@ -49,6 +50,15 @@ class SiteProfitReport extends Component
             'startDate' => 'required|date',
             'endDate' => 'required|date|after_or_equal:startDate',
         ];
+    }
+
+    public function toggleGroup($serviceTypeId)
+    {
+        if (in_array($serviceTypeId, $this->openGroups)) {
+            $this->openGroups = array_diff($this->openGroups, [$serviceTypeId]);
+        } else {
+            $this->openGroups[] = $serviceTypeId;
+        }
     }
 
     public function generateReport()
@@ -118,8 +128,18 @@ class SiteProfitReport extends Component
                         }
                     }
 
+                    if (!$userId) {
+                        continue;
+                    }
+
                     $log = $this->matchProfitLog($profitLogs, $userId, $item->boost_type_id, $item->start_date);
-                    if (!$log && $userId) {
+
+                    // Dollar type: only a FLAT profit log is valid.
+                    // MMK type: only a PERCENTAGE profit log is valid.
+                    $isInvalidForDollar = $isDollar && (!$log || $log->type !== 'flat');
+                    $isInvalidForMmk = !$isDollar && (!$log || $log->type !== 'percentage');
+
+                    if ($isInvalidForDollar || $isInvalidForMmk) {
                         $key = $boostType->id . '|' . $userId . '|' . $item->start_date->format('Y-m-d');
                         $missingProfitSet[$key] = [
                             'boost_type_id' => $boostType->id,
@@ -179,7 +199,6 @@ class SiteProfitReport extends Component
             $subtotals = [
                 'line_total' => 0,
                 'discount' => 0,
-                'discount_mmk' => 0,
                 'revenue' => 0,
                 'employee_profit' => 0,
                 'my_profit' => 0,
@@ -190,7 +209,6 @@ class SiteProfitReport extends Component
 
                 $lineTotal = 0;
                 $discount = 0;
-                $discountMmk = 0;
                 $revenue = 0;
                 $employeeProfit = 0;
 
@@ -198,32 +216,35 @@ class SiteProfitReport extends Component
                     $userId = optional($item->dataInput)->user_id;
                     $lineTotal += (float) $item->line_total;
 
+                    // Discount is already an mmk value at input time — sum directly for both types
+                    // (display only, line_total already reflects it net of discount).
+                    $discount += (float) $item->discount;
+
                     if ($isDollar) {
-                        $discount += (float) $item->discount;
                         $rate = $this->matchExchangeRate($exchangeLogs, $item->start_date);
                         $revenue += (float) $item->amount * (float) $rate->amount;
-                        $discountMmk += (float) $item->discount * (float) $rate->amount;
                     }
 
                     $log = $this->matchProfitLog($profitLogs, $userId, $item->boost_type_id, $item->start_date);
                     if ($log) {
-                        if ($log->type === 'flat') {
+                        if ($isDollar && $log->type === 'flat') {
+                            // Dollar type: flat only.
                             $employeeProfit += (float) $item->amount * (float) $log->amount;
-                        } else {
+                        } elseif (!$isDollar && $log->type === 'percentage') {
+                            // MMK type: percentage only.
                             $employeeProfit += (float) $item->line_total * ((float) $log->amount / 100);
                         }
                     }
                 }
 
-                $myProfit = $isDollar
-                    ? ($revenue - $employeeProfit - $discount)
-                    : ($lineTotal - $employeeProfit);
+                // Unified formula for both dollar & mmk types:
+                // my_profit = line_total - employee_profit (revenue/discount shown for reference only).
+                $myProfit = $lineTotal - $employeeProfit;
 
                 $rows[] = [
                     'boost_type_name' => $boostType->name,
                     'line_total' => $lineTotal,
                     'discount' => $discount,
-                    'discount_mmk' => $discountMmk,
                     'revenue' => $revenue,
                     'employee_profit' => $employeeProfit,
                     'my_profit' => $myProfit,
@@ -231,7 +252,6 @@ class SiteProfitReport extends Component
 
                 $subtotals['line_total'] += $lineTotal;
                 $subtotals['discount'] += $discount;
-                $subtotals['discount_mmk'] += $discountMmk;
                 $subtotals['revenue'] += $revenue;
                 $subtotals['employee_profit'] += $employeeProfit;
                 $subtotals['my_profit'] += $myProfit;
@@ -342,7 +362,7 @@ class SiteProfitReport extends Component
 
             foreach ($this->serviceTypeGroups as $group) {
                 fputcsv($handle, [$group['service_type_name'] . ' (' . $group['type'] . ')']);
-                fputcsv($handle, ['No', 'Boost Type', 'Line Total', 'Discount', 'Discount (MMK)', 'Revenue', 'E_Profit', 'M_Profit']);
+                fputcsv($handle, ['No', 'Boost Type', 'Line Total', 'Discount', 'Revenue', 'E_Profit', 'M_Profit']);
 
                 foreach ($group['rows'] as $i => $row) {
                     $isDollar = $group['type'] === 'dollar';
@@ -350,8 +370,7 @@ class SiteProfitReport extends Component
                         $i + 1,
                         $row['boost_type_name'],
                         number_format($row['line_total'], 2, '.', ''),
-                        $isDollar ? number_format($row['discount'], 2, '.', '') : '-',
-                        $isDollar ? number_format($row['discount_mmk'], 2, '.', '') : '-',
+                        number_format($row['discount'], 2, '.', ''),
                         $isDollar ? number_format($row['revenue'], 2, '.', '') : '-',
                         number_format($row['employee_profit'], 2, '.', ''),
                         number_format($row['my_profit'], 2, '.', ''),
@@ -362,8 +381,7 @@ class SiteProfitReport extends Component
                     'Subtotal',
                     '',
                     number_format($group['subtotals']['line_total'], 2, '.', ''),
-                    $group['type'] === 'dollar' ? number_format($group['subtotals']['discount'], 2, '.', '') : '-',
-                    $group['type'] === 'dollar' ? number_format($group['subtotals']['discount_mmk'], 2, '.', '') : '-',
+                    number_format($group['subtotals']['discount'], 2, '.', ''),
                     $group['type'] === 'dollar' ? number_format($group['subtotals']['revenue'], 2, '.', '') : '-',
                     number_format($group['subtotals']['employee_profit'], 2, '.', ''),
                     number_format($group['subtotals']['my_profit'], 2, '.', ''),

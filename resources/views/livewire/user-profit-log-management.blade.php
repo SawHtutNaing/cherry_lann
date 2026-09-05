@@ -138,17 +138,24 @@
     <label class="block mb-1 text-sm font-medium text-gray-700">
         Service Type(s)
     </label>
-    <div class="grid grid-cols-2 gap-2 p-3 overflow-y-auto border border-gray-300 rounded shadow-sm max-h-40 sm:grid-cols-3">
+  <div class="p-3 overflow-y-auto border border-gray-300 rounded shadow-sm max-h-40">
+    @php $shownDivider = false; @endphp
+    <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
         @forelse ($boostTypes as $boostType)
-            <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+            @if (!$boostType->is_active && !$shownDivider)
+                @php $shownDivider = true; @endphp
+                <div class="col-span-2 my-2 border-t border-gray-300 sm:col-span-3"></div>
+            @endif
+            <label class="flex items-center gap-2 text-sm cursor-pointer select-none {{ $boostType->is_active ? 'text-gray-700' : 'text-red-500' }}">
                 <input type="checkbox" wire:model="boost_type_ids" value="{{ $boostType->id }}"
                     class="text-blue-500 border-gray-300 rounded shadow-sm focus:ring-2 focus:ring-blue-400">
                 {{ $boostType->name }}
             </label>
         @empty
-            <p class="text-sm text-gray-400">No Service types available.</p>
+            <p class="text-sm text-gray-400 col-span-full">No Service types available.</p>
         @endforelse
     </div>
+</div>
     <p class="mt-1 text-xs text-gray-400">
         Select one or more. A separate log is created for each Service type checked.
     </p>

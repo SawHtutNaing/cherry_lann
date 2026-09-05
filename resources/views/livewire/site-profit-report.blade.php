@@ -75,73 +75,84 @@
                 No service types with Service Types found.
             </div>
         @else
-            @foreach ($serviceTypeGroups as $group)
-                @php $isDollar = $group['type'] === 'dollar'; @endphp
-                <div class="mb-6 overflow-hidden bg-white border border-gray-200 rounded shadow" x-data="{ open: false }">
-                    <div class="flex items-center justify-between px-4 py-3 bg-gray-100 border-b">
-                        <h2 class="text-sm font-semibold text-gray-800 sm:text-base">
-                            {{ $group['service_type_name'] }}
-                            <span class="ml-2 text-xs font-normal text-gray-500 uppercase">({{ $group['type'] }})</span>
-                        </h2>
-                        <button @click="open = !open"
-                            class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200">
-                            <span x-show="!open">Show Details</span>
-                            <span x-show="open" style="display:none">Hide Details</span>
-                        </button>
-                    </div>
+            <div class="mb-6 overflow-hidden bg-white border border-gray-200 rounded shadow">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full" style="table-layout: fixed;">
+                        <colgroup>
+                            <col style="width: 6%">
+                            <col style="width: 22%">
+                            <col style="width: 16%">
+                            <col style="width: 16%">
+                            <col style="width: 16%">
+                            <col style="width: 12%">
+                            <col style="width: 12%">
+                        </colgroup>
+                        <tbody>
+                            @foreach ($serviceTypeGroups as $group)
+                                @php
+                                    $isDollar = $group['type'] === 'dollar';
+                                    $isOpen = in_array($group['service_type_id'], $openGroups);
+                                @endphp
 
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full">
-                            <thead x-show="open" style="display:none">
-                                <tr class="bg-gray-50 border-b">
-                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">No</th>
-                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Service Type</th>
-                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Line Total</th>
-                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Discount</th>
-                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Discount (MMK)</th>
-                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Revenue</th>
-                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">E_Profit</th>
-                                    <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">M_Profit</th>
-                                </tr>
-                            </thead>
-                            <tbody x-show="open" style="display:none">
-                                @foreach ($group['rows'] as $row)
-                                    <tr class="border-b">
-                                        <td class="px-4 py-2 text-sm text-center text-gray-800">{{ $loop->iteration }}</td>
-                                        <td class="px-4 py-2 text-sm text-center text-gray-800">{{ $row['boost_type_name'] }}</td>
-                                        <td class="px-4 py-2 text-sm text-center text-gray-800">
-                                            {{ number_format($row['line_total'], 2) }}
-                                        </td>
-                                        <td class="px-4 py-2 text-sm text-center text-gray-800">
-                                            {{ $isDollar ? number_format($row['discount'], 2) : '-' }}
-                                        </td>
-                                        <td class="px-4 py-2 text-sm text-center text-gray-800">
-                                            {{ $isDollar ? number_format($row['discount_mmk'], 2) : '-' }}
-                                        </td>
-                                        <td class="px-4 py-2 text-sm text-center text-gray-800">
-                                            {{ $isDollar ? number_format($row['revenue'], 2) : '-' }}
-                                        </td>
-                                        <td class="px-4 py-2 text-sm text-center text-gray-800">
-                                            {{ number_format($row['employee_profit'], 2) }}
-                                        </td>
-                                        <td class="px-4 py-2 text-sm font-medium text-center text-gray-900">
-                                            {{ number_format($row['my_profit'], 2) }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                            <tfoot>
+                                {{-- Group title row --}}
                                 <tr class="bg-gray-100 border-t-2 border-gray-300">
+                                    <td colspan="7" class="px-4 py-2">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-semibold text-gray-800 sm:text-base">
+                                                {{ $group['service_type_name'] }}
+                                                <span class="ml-2 text-xs font-normal text-gray-500 uppercase">({{ $group['type'] }})</span>
+                                            </span>
+                                            <button wire:click="toggleGroup({{ $group['service_type_id'] }})"
+                                                class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded hover:bg-blue-200">
+                                                {{ $isOpen ? 'Hide Details' : 'Show Details' }}
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                @if ($isOpen)
+                                    {{-- Column header row, shown only while this group is expanded --}}
+                                    <tr class="bg-gray-50 border-b">
+                                        <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">No</th>
+                                        <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Service Type</th>
+                                        <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Line Total</th>
+                                        <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Discount</th>
+                                        <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">Revenue</th>
+                                        <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">E_Profit</th>
+                                        <th class="px-4 py-2 text-sm font-bold text-center text-gray-600">M_Profit</th>
+                                    </tr>
+
+                                    @foreach ($group['rows'] as $row)
+                                        <tr class="border-b">
+                                            <td class="px-4 py-2 text-sm text-center text-gray-800 truncate">{{ $loop->iteration }}</td>
+                                            <td class="px-4 py-2 text-sm text-center text-gray-800 truncate">{{ $row['boost_type_name'] }}</td>
+                                            <td class="px-4 py-2 text-sm text-center text-gray-800 truncate">
+                                                {{ number_format($row['line_total'], 2) }}
+                                            </td>
+                                            <td class="px-4 py-2 text-sm text-center text-gray-800 truncate">
+                                                {{ number_format($row['discount'], 2) }}
+                                            </td>
+                                            <td class="px-4 py-2 text-sm text-center text-gray-800 truncate">
+                                                {{ $isDollar ? number_format($row['revenue'], 2) : '-' }}
+                                            </td>
+                                            <td class="px-4 py-2 text-sm text-center text-gray-800 truncate">
+                                                {{ number_format($row['employee_profit'], 2) }}
+                                            </td>
+                                            <td class="px-4 py-2 text-sm font-medium text-center text-gray-900 truncate">
+                                                {{ number_format($row['my_profit'], 2) }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+
+                                <tr class="bg-gray-100 border-b-2 border-gray-300">
                                     <td class="px-4 py-2 text-sm font-bold text-center text-gray-800">Subtotal</td>
                                     <td class="px-4 py-2 text-sm font-bold text-center text-gray-800"></td>
                                     <td class="px-4 py-2 text-sm font-bold text-center text-gray-800">
                                         {{ number_format($group['subtotals']['line_total'], 2) }}
                                     </td>
                                     <td class="px-4 py-2 text-sm font-bold text-center text-gray-800">
-                                        {{ $isDollar ? number_format($group['subtotals']['discount'], 2) : '-' }}
-                                    </td>
-                                    <td class="px-4 py-2 text-sm font-bold text-center text-gray-800">
-                                        {{ $isDollar ? number_format($group['subtotals']['discount_mmk'], 2) : '-' }}
+                                        {{ number_format($group['subtotals']['discount'], 2) }}
                                     </td>
                                     <td class="px-4 py-2 text-sm font-bold text-center text-gray-800">
                                         {{ $isDollar ? number_format($group['subtotals']['revenue'], 2) : '-' }}
@@ -153,11 +164,11 @@
                                         {{ number_format($group['subtotals']['my_profit'], 2) }}
                                     </td>
                                 </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-            @endforeach
+            </div>
 
             {{-- Combined profit before expenses --}}
             <div class="flex items-center justify-between p-4 mb-6 text-white bg-green-600 rounded shadow">

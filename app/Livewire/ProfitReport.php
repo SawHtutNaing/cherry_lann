@@ -153,8 +153,18 @@ class ProfitReport extends Component
                     }
                 }
 
+                if (!$userId) {
+                    continue;
+                }
+
                 $log = $this->matchProfitLog($profitLogs, $userId, $item->boost_type_id, $item->start_date);
-                if (!$log && $userId) {
+
+                // Dollar type: only a FLAT profit log is valid.
+                // MMK type: only a PERCENTAGE profit log is valid.
+                $isInvalidForDollar = $isDollar && (!$log || $log->type !== 'flat');
+                $isInvalidForMmk = !$isDollar && (!$log || $log->type !== 'percentage');
+
+                if ($isInvalidForDollar || $isInvalidForMmk) {
                     $key = $item->boost_type_id . '|' . $userId . '|' . $item->start_date->format('Y-m-d');
                     $missingProfitSet[$key] = [
                         'service_type' => $serviceType->name,
@@ -249,27 +259,30 @@ class ProfitReport extends Component
                     $userId = optional($item->dataInput)->user_id;
                     $lineTotal += (float) $item->line_total;
 
+                    // Discount is tracked for both types (display only — line_total already nets it out).
+                    $discount += (float) $item->discount;
+
                     if ($isDollar) {
-                        $discount += (float) $item->discount;
                         $rate = $this->matchExchangeRate($exchangeLogs, $item->start_date);
                         $revenue += (float) $item->amount * (float) $rate->amount;
                     }
 
                     $log = $this->matchProfitLog($profitLogs, $userId, $item->boost_type_id, $item->start_date);
                     if ($log) {
-                        if ($log->type === 'flat') {
+                        if ($isDollar && $log->type === 'flat') {
+                            // Dollar type: flat only.
                             $employeeProfit += (float) $item->amount * (float) $log->amount;
-                        } else { // percentage
+                        } elseif (!$isDollar && $log->type === 'percentage') {
+                            // MMK type: percentage only.
                             $employeeProfit += (float) $item->line_total * ((float) $log->amount / 100);
                         }
                     }
                 }
 
-                if ($isDollar) {
-                    $myProfit = $revenue - $employeeProfit - $discount;
-                } else {
-                    $myProfit = $lineTotal - $employeeProfit;
-                }
+                // Unified formula for both dollar & mmk types:
+                // line_total already reflects discount deducted at input time,
+                // so my_profit = line_total - employee_profit (revenue/discount shown for reference only).
+                $myProfit = $lineTotal - $employeeProfit;
 
                 $rows[] = [
                     'boost_type_id' => $boostType->id,
