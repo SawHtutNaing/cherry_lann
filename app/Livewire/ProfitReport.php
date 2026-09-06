@@ -282,7 +282,7 @@ class ProfitReport extends Component
                 // Unified formula for both dollar & mmk types:
                 // line_total already reflects discount deducted at input time,
                 // so my_profit = line_total - employee_profit (revenue/discount shown for reference only).
-                $myProfit = $lineTotal - $employeeProfit;
+                $myProfit = $lineTotal - $employeeProfit - $revenue;
 
                 $rows[] = [
                     'boost_type_id' => $boostType->id,
