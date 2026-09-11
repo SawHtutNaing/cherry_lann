@@ -102,15 +102,24 @@
                         {{ $expense->remark ?: '-' }}
                     </td>
                     <td class="px-6 py-4 text-center">
-                        <div class="flex flex-wrap justify-center gap-1" id="expense-images-{{ $expense->id }}">
-                            @forelse ($expense->images as $image)
-                                <img src="{{ $image->url }}"
-                                    class="object-cover w-10 h-10 border border-gray-200 rounded cursor-pointer hover:opacity-80"
-                                    onclick="openExpenseImageModal('{{ $image->url }}', 'expense-images-{{ $expense->id }}')">
-                            @empty
-                                <span class="text-xs text-gray-400">No images</span>
-                            @endforelse
+                        <div class="flex flex-wrap items-center justify-center gap-1 mb-1" id="expense-images-{{ $expense->id }}">
+                            @foreach ($expense->images as $image)
+                                <div class="relative group" data-image-id="{{ $image->id }}">
+                                    <img src="{{ $image->url }}"
+                                        class="object-cover w-10 h-10 border border-gray-200 rounded cursor-pointer hover:opacity-80"
+                                        onclick="openExpenseImageModal('{{ $image->url }}', 'expense-images-{{ $expense->id }}')">
+                                    <button type="button" onclick="event.stopPropagation(); deleteExpenseImage({{ $expense->id }}, {{ $image->id }})"
+                                        class="absolute items-center justify-center hidden w-4 h-4 text-white bg-red-500 rounded-full shadow -top-1 -right-1 group-hover:flex hover:bg-red-600"
+                                        style="font-size: 9px; line-height: 1;">
+                                        ✕
+                                    </button>
+                                </div>
+                            @endforeach
                         </div>
+                        <button type="button" onclick="triggerExpenseImageUpload({{ $expense->id }})"
+                            class="px-2 py-0.5 text-xs text-blue-600 border border-blue-300 rounded hover:bg-blue-50">
+                            + Add
+                        </button>
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex flex-col justify-center gap-2 sm:flex-row">
@@ -199,48 +208,13 @@
                         @error('remark') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
                     </div>
 
-                    @if (count($currentImages))
-                        <div class="mb-4">
-                            <label class="block mb-2 text-sm font-medium text-gray-700">Existing Images</label>
-                            <div class="grid grid-cols-4 gap-2">
-                                @foreach ($currentImages as $image)
-                                    <div class="relative">
-                                        <img src="{{ $image['url'] }}" class="object-cover w-full h-16 border border-gray-200 rounded">
-                                        <button type="button" wire:click="removeExistingImage({{ $image['id'] }})"
-                                            wire:confirm="Delete this image?"
-                                            class="absolute top-0.5 right-0.5 px-1.5 py-0.5 text-xs text-white bg-red-500 rounded shadow hover:bg-red-600">
-                                            ✕
-                                        </button>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-
-                    <div class="mb-4">
-                        <label for="newImages" class="block mb-1 text-sm font-medium text-gray-700">
-                            {{ count($currentImages) ? 'Add More Images' : 'Images' }} <span class="text-gray-400">(optional)</span>
-                        </label>
-                        <input type="file" id="newImages" wire:model="newImages" multiple accept="image/*"
-                            class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-                        <p class="mt-1 text-xs text-gray-400">You can select multiple images at once.</p>
-                        <div wire:loading wire:target="newImages" class="mt-1 text-xs text-gray-500">Uploading…</div>
-                        @error('newImages.*') <span class="text-sm text-red-500">{{ $message }}</span> @enderror
-
-                        @if (count($newImages))
-                            <div class="grid grid-cols-4 gap-2 mt-2">
-                                @foreach ($newImages as $index => $image)
-                                    <div class="relative">
-                                        <img src="{{ $image->temporaryUrl() }}" class="object-cover w-full h-16 border border-gray-200 rounded">
-                                        <button type="button" wire:click="removeNewImage({{ $index }})"
-                                            class="absolute top-0.5 right-0.5 px-1.5 py-0.5 text-xs text-white bg-red-500 rounded shadow hover:bg-red-600">
-                                            ✕
-                                        </button>
-                                    </div>
-                                @endforeach
-                            </div>
+                    <p class="mb-4 text-xs text-gray-400">
+                        @if ($expenseId)
+                            Manage this expense's images from the "Images" column in the table (close this form to access it).
+                        @else
+                            You can attach images from the table's "Images" column after creating the expense.
                         @endif
-                    </div>
+                    </p>
 
                     <div class="flex justify-end gap-2 mt-6">
                         <button type="button" wire:click="closeModal"
@@ -279,6 +253,9 @@
             <p class="img-modal-hint">Use ← → to navigate · Tap outside or press Esc to close</p>
         </div>
     </div>
+
+    {{-- Shared hidden file input used by the per-row "+ Add" upload button --}}
+    <input type="file" id="expenseImageFileInput" accept="image/*" multiple class="hidden">
 
 <style>
     /* ── Gallery Image Modal — vanilla CSS ─────────────────────────────── */
@@ -456,5 +433,70 @@
         if (e.key === 'ArrowRight') showNextExpenseImage();
         if (e.key === 'Escape') closeExpenseImageModal();
     });
+
+    // ── Image upload/delete — plain fetch to ExpenseImageController, no Livewire file upload ──
+    const expenseCsrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const expenseImageFileInput = document.getElementById('expenseImageFileInput');
+    let currentExpenseUploadId = null;
+
+    function triggerExpenseImageUpload(expenseId) {
+        currentExpenseUploadId = expenseId;
+        expenseImageFileInput.value = '';
+        expenseImageFileInput.click();
+    }
+
+    expenseImageFileInput.addEventListener('change', function () {
+        if (!currentExpenseUploadId || !this.files.length) return;
+
+        const formData = new FormData();
+        for (const file of this.files) {
+            formData.append('images[]', file);
+        }
+
+        fetch(`/expenses/${currentExpenseUploadId}/images`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': expenseCsrfToken },
+            body: formData,
+        })
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+            const container = document.getElementById(`expense-images-${currentExpenseUploadId}`);
+            if (!container) return;
+            data.images.forEach(image => container.appendChild(buildExpenseImageEl(currentExpenseUploadId, image.id, image.url)));
+        })
+        .catch(() => alert('Failed to upload image(s).'));
+    });
+
+    function buildExpenseImageEl(expenseId, imageId, url) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative group';
+        wrapper.dataset.imageId = imageId;
+        wrapper.innerHTML = `
+            <img src="${url}" class="object-cover w-10 h-10 border border-gray-200 rounded cursor-pointer hover:opacity-80">
+            <button type="button" class="absolute items-center justify-center hidden w-4 h-4 text-white bg-red-500 rounded-full shadow -top-1 -right-1 group-hover:flex hover:bg-red-600" style="font-size: 9px; line-height: 1;">✕</button>
+        `;
+        wrapper.querySelector('img').addEventListener('click', () => openExpenseImageModal(url, `expense-images-${expenseId}`));
+        wrapper.querySelector('button').addEventListener('click', e => {
+            e.stopPropagation();
+            deleteExpenseImage(expenseId, imageId);
+        });
+        return wrapper;
+    }
+
+    function deleteExpenseImage(expenseId, imageId) {
+        if (!confirm('Delete this image?')) return;
+
+        fetch(`/expenses/${expenseId}/images/${imageId}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': expenseCsrfToken },
+        })
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(() => {
+            const container = document.getElementById(`expense-images-${expenseId}`);
+            const el = container ? container.querySelector(`[data-image-id="${imageId}"]`) : null;
+            if (el) el.remove();
+        })
+        .catch(() => alert('Failed to delete image.'));
+    }
 </script>
 </div>

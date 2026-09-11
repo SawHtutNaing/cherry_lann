@@ -2,6 +2,7 @@
 <?php
 
 use App\Http\Controllers\DataInputImageController;
+use App\Http\Controllers\ExpenseImageController;
 use App\Http\Controllers\DataInputManagementController;
 use App\Http\Controllers\ProfileController;
 use App\Livewire\BoostTypeManagement;
@@ -96,6 +97,10 @@ Route::get('users/{user}/profit-logs', UserProfitLogManagement::class)->name('us
     Route::get('/expense-cateogry', ExpenseCategoryManagement::class)->name('expense_category.index');
     Route::get('/service-types', ServiceTypeManagement::class)->name('service_type.index');
     Route::get('/expense-management', ExpenseManagement::class)->name('expense_management.index');
+
+    // Expense image upload/delete
+    Route::post('expenses/{expense}/images', [ExpenseImageController::class, 'upload'])->name('expenses.images.upload');
+    Route::delete('expenses/{expense}/images/{image}', [ExpenseImageController::class, 'destroy'])->name('expenses.images.destroy');
 
 
 
