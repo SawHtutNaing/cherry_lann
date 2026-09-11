@@ -10,7 +10,7 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('visas.store') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('visas.store') }}" enctype="multipart/form-data" id="visaCreateForm">
         @csrf
 
         <div class="mb-4">
@@ -34,16 +34,12 @@
 
         <div class="mb-4">
             <label class="block mb-1 text-gray-700">Images:</label>
-            <div id="imageDropzone"
-                class="flex flex-col items-center justify-center gap-1 p-6 text-center transition border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-blue-400 hover:bg-blue-50">
-                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 8.25 12 3.75m0 0L7.5 8.25M12 3.75v13.5" />
-                </svg>
-                <p class="text-sm text-gray-600"><span class="font-medium text-blue-600">Click to upload</span> or drag and drop</p>
-                <p class="text-xs text-gray-400">You can select multiple images at once (max 5MB each)</p>
-                <input type="file" id="imagesInput" name="images[]" multiple accept="image/*" class="hidden">
-            </div>
-            <div id="imagePreviewGrid" class="grid grid-cols-4 gap-2 mt-3 sm:grid-cols-5"></div>
+            <div id="imageSlots" class="flex flex-wrap gap-3"></div>
+            <button type="button" id="addImageBtn"
+                class="px-3 py-1.5 mt-3 text-sm text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50">
+                + Add Image
+            </button>
+            <p class="mt-1 text-xs text-gray-400">Add one image at a time — each slot has its own Edit / Delete.</p>
         </div>
 
         <div class="flex justify-end gap-4">
@@ -56,67 +52,65 @@
 
 <script>
     (function () {
-        const dropzone = document.getElementById('imageDropzone');
-        const input = document.getElementById('imagesInput');
-        const previewGrid = document.getElementById('imagePreviewGrid');
-        let selectedFiles = [];
+        const slotsContainer = document.getElementById('imageSlots');
+        const addBtn = document.getElementById('addImageBtn');
+        const form = document.getElementById('visaCreateForm');
 
-        dropzone.addEventListener('click', () => input.click());
+        function createImageSlot() {
+            const slot = document.createElement('div');
+            slot.className = 'relative flex flex-col items-center justify-center overflow-hidden bg-gray-50 border border-gray-300 border-dashed rounded w-24 h-24 shrink-0';
+            slot.innerHTML = `
+                <input type="file" name="images[]" accept="image/*" class="hidden" data-file-input>
+                <img class="absolute inset-0 hidden object-cover w-full h-full" data-preview>
+                <button type="button" class="flex flex-col items-center gap-1 text-gray-400" data-choose>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    <span class="text-xs">Choose</span>
+                </button>
+                <div class="absolute inset-x-0 bottom-0 items-center justify-center hidden gap-3 py-1 text-xs bg-black bg-opacity-60" data-actions>
+                    <button type="button" class="text-white hover:underline" data-edit>Edit</button>
+                    <button type="button" class="text-red-300 hover:underline" data-delete>Delete</button>
+                </div>
+            `;
 
-        dropzone.addEventListener('dragover', e => {
-            e.preventDefault();
-            dropzone.classList.add('border-blue-400', 'bg-blue-50');
-        });
-        dropzone.addEventListener('dragleave', () => {
-            dropzone.classList.remove('border-blue-400', 'bg-blue-50');
-        });
-        dropzone.addEventListener('drop', e => {
-            e.preventDefault();
-            dropzone.classList.remove('border-blue-400', 'bg-blue-50');
-            addFiles(e.dataTransfer.files);
-        });
+            const fileInput = slot.querySelector('[data-file-input]');
+            const preview = slot.querySelector('[data-preview]');
+            const chooseBtn = slot.querySelector('[data-choose]');
+            const actions = slot.querySelector('[data-actions]');
+            const editBtn = slot.querySelector('[data-edit]');
+            const deleteBtn = slot.querySelector('[data-delete]');
 
-        input.addEventListener('click', e => e.stopPropagation());
-        input.addEventListener('change', () => addFiles(input.files));
+            chooseBtn.addEventListener('click', () => fileInput.click());
+            editBtn.addEventListener('click', () => fileInput.click());
+            deleteBtn.addEventListener('click', () => slot.remove());
 
-        function addFiles(fileList) {
-            for (const file of fileList) {
-                if (file.type.startsWith('image/')) selectedFiles.push(file);
-            }
-            syncInput();
-            renderPreviews();
-        }
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files[0];
+                if (!file) return;
 
-        function removeFile(index) {
-            selectedFiles.splice(index, 1);
-            syncInput();
-            renderPreviews();
-        }
-
-        // Rebuild the real <input> FileList so the removed/added files are what actually submits.
-        function syncInput() {
-            const dt = new DataTransfer();
-            selectedFiles.forEach(file => dt.items.add(file));
-            input.files = dt.files;
-        }
-
-        function renderPreviews() {
-            previewGrid.innerHTML = '';
-            selectedFiles.forEach((file, index) => {
-                const url = URL.createObjectURL(file);
-                const wrapper = document.createElement('div');
-                wrapper.className = 'relative group';
-                wrapper.innerHTML = `
-                    <img src="${url}" class="object-cover w-full border border-gray-200 rounded h-20">
-                    <button type="button"
-                        class="absolute flex items-center justify-center w-5 h-5 text-xs text-white bg-red-500 rounded-full shadow -top-1.5 -right-1.5 hover:bg-red-600">
-                        ✕
-                    </button>
-                `;
-                wrapper.querySelector('button').addEventListener('click', () => removeFile(index));
-                previewGrid.appendChild(wrapper);
+                preview.src = URL.createObjectURL(file);
+                preview.classList.remove('hidden');
+                chooseBtn.classList.add('hidden');
+                actions.classList.remove('hidden');
+                actions.classList.add('flex');
             });
+
+            return slot;
         }
+
+        addBtn.addEventListener('click', () => slotsContainer.appendChild(createImageSlot()));
+
+        // Start with one empty slot so the first image doesn't need an extra click.
+        slotsContainer.appendChild(createImageSlot());
+
+        // Slots added but left empty (e.g. an unused extra one) must not be submitted —
+        // an empty file input still posts as an invalid "images[]" entry and fails validation.
+        form.addEventListener('submit', () => {
+            form.querySelectorAll('[data-file-input]').forEach(input => {
+                if (!input.files || input.files.length === 0) input.disabled = true;
+            });
+        });
     })();
 </script>
 </x-app-layout>
