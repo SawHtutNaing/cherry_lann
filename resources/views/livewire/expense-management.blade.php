@@ -102,24 +102,31 @@
                         {{ $expense->remark ?: '-' }}
                     </td>
                     <td class="px-6 py-4 text-center">
-                        <div class="flex flex-wrap items-center justify-center gap-1 mb-1" id="expense-images-{{ $expense->id }}">
+                        <div class="flex flex-wrap items-center justify-center gap-2" id="expense-images-{{ $expense->id }}">
                             @foreach ($expense->images as $image)
-                                <div class="relative group" data-image-id="{{ $image->id }}">
-                                    <img src="{{ $image->url }}"
-                                        class="object-cover w-10 h-10 border border-gray-200 rounded cursor-pointer hover:opacity-80"
+                                <div class="relative flex items-center justify-center overflow-hidden bg-gray-50 border border-gray-200 rounded w-16 h-16 shrink-0 group" data-image-id="{{ $image->id }}">
+                                    <img src="{{ $image->url }}" class="object-cover w-full h-full cursor-pointer"
                                         onclick="openExpenseImageModal('{{ $image->url }}', 'expense-images-{{ $expense->id }}')">
-                                    <button type="button" onclick="event.stopPropagation(); deleteExpenseImage({{ $expense->id }}, {{ $image->id }})"
-                                        class="absolute items-center justify-center hidden w-4 h-4 text-white bg-red-500 rounded-full shadow -top-1 -right-1 group-hover:flex hover:bg-red-600"
-                                        style="font-size: 9px; line-height: 1;">
-                                        ✕
-                                    </button>
+                                    <input type="file" accept="image/*" class="hidden"
+                                        onchange="handleExpenseImageEditChange(this, {{ $expense->id }}, {{ $image->id }})">
+                                    <div class="absolute inset-x-0 bottom-0 items-center justify-center hidden gap-2 py-0.5 text-white bg-black bg-opacity-60 group-hover:flex"
+                                        style="font-size: 9px; line-height: 1.4;">
+                                        <button type="button" onclick="event.stopPropagation(); triggerNearestFileInput(this)" class="hover:underline">Edit</button>
+                                        <button type="button" onclick="event.stopPropagation(); deleteExpenseImage({{ $expense->id }}, {{ $image->id }})" class="text-red-300 hover:underline">Delete</button>
+                                    </div>
                                 </div>
                             @endforeach
+                            <div class="relative flex flex-col items-center justify-center overflow-hidden bg-gray-50 border border-gray-300 border-dashed rounded w-16 h-16 shrink-0" data-add-slot>
+                                <input type="file" accept="image/*" class="hidden"
+                                    onchange="handleExpenseImageAddChange(this, {{ $expense->id }})">
+                                <button type="button" onclick="triggerNearestFileInput(this)" class="flex flex-col items-center text-gray-400">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                    <span style="font-size: 9px;">Add</span>
+                                </button>
+                            </div>
                         </div>
-                        <button type="button" onclick="triggerExpenseImageUpload({{ $expense->id }})"
-                            class="px-2 py-0.5 text-xs text-blue-600 border border-blue-300 rounded hover:bg-blue-50">
-                            + Add
-                        </button>
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex flex-col justify-center gap-2 sm:flex-row">
@@ -253,9 +260,6 @@
             <p class="img-modal-hint">Use ← → to navigate · Tap outside or press Esc to close</p>
         </div>
     </div>
-
-    {{-- Shared hidden file input used by the per-row "+ Add" upload button --}}
-    <input type="file" id="expenseImageFileInput" accept="image/*" multiple class="hidden">
 
 <style>
     /* ── Gallery Image Modal — vanilla CSS ─────────────────────────────── */
@@ -434,49 +438,86 @@
         if (e.key === 'Escape') closeExpenseImageModal();
     });
 
-    // ── Image upload/delete — plain fetch to ExpenseImageController, no Livewire file upload ──
+    // ── Image upload/edit/delete — plain fetch to ExpenseImageController, one slot per image ──
     const expenseCsrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    const expenseImageFileInput = document.getElementById('expenseImageFileInput');
-    let currentExpenseUploadId = null;
 
-    function triggerExpenseImageUpload(expenseId) {
-        currentExpenseUploadId = expenseId;
-        expenseImageFileInput.value = '';
-        expenseImageFileInput.click();
+    // Every slot (a filled image or the trailing "+ Add" tile) carries its own <input type="file">.
+    function triggerNearestFileInput(el) {
+        const wrapper = el.closest('[data-image-id], [data-add-slot]');
+        const input = wrapper ? wrapper.querySelector('input[type=file]') : null;
+        if (input) input.click();
     }
 
-    expenseImageFileInput.addEventListener('change', function () {
-        if (!currentExpenseUploadId || !this.files.length) return;
+    // The dashed "+ Add" slot — uploads a single file immediately, then turns into a filled slot.
+    function handleExpenseImageAddChange(input, expenseId) {
+        const file = input.files[0];
+        if (!file) return;
 
         const formData = new FormData();
-        for (const file of this.files) {
-            formData.append('images[]', file);
-        }
+        formData.append('images[]', file);
 
-        fetch(`/expenses/${currentExpenseUploadId}/images`, {
+        fetch(`/expenses/${expenseId}/images`, {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': expenseCsrfToken },
             body: formData,
         })
         .then(r => { if (!r.ok) throw new Error(); return r.json(); })
         .then(data => {
-            const container = document.getElementById(`expense-images-${currentExpenseUploadId}`);
-            if (!container) return;
-            data.images.forEach(image => container.appendChild(buildExpenseImageEl(currentExpenseUploadId, image.id, image.url)));
+            const container = document.getElementById(`expense-images-${expenseId}`);
+            const addSlot = input.closest('[data-add-slot]');
+            if (!container || !addSlot) return;
+            data.images.forEach(image => {
+                container.insertBefore(buildExpenseImageSlot(expenseId, image.id, image.url), addSlot);
+            });
+            input.value = ''; // ready for the next image
         })
-        .catch(() => alert('Failed to upload image(s).'));
-    });
+        .catch(() => alert('Failed to upload image.'));
+    }
 
-    function buildExpenseImageEl(expenseId, imageId, url) {
+    // "Edit" on an existing slot — replaces that image's file in place.
+    function handleExpenseImageEditChange(input, expenseId, imageId) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        fetch(`/expenses/${expenseId}/images/${imageId}`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': expenseCsrfToken },
+            body: formData,
+        })
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => {
+            const wrapper = document.querySelector(`#expense-images-${expenseId} [data-image-id="${imageId}"]`);
+            const img = wrapper ? wrapper.querySelector('img') : null;
+            if (img) img.src = data.url;
+            input.value = '';
+        })
+        .catch(() => alert('Failed to update image.'));
+    }
+
+    function buildExpenseImageSlot(expenseId, imageId, url) {
         const wrapper = document.createElement('div');
-        wrapper.className = 'relative group';
+        wrapper.className = 'relative flex items-center justify-center overflow-hidden bg-gray-50 border border-gray-200 rounded w-16 h-16 shrink-0 group';
         wrapper.dataset.imageId = imageId;
         wrapper.innerHTML = `
-            <img src="${url}" class="object-cover w-10 h-10 border border-gray-200 rounded cursor-pointer hover:opacity-80">
-            <button type="button" class="absolute items-center justify-center hidden w-4 h-4 text-white bg-red-500 rounded-full shadow -top-1 -right-1 group-hover:flex hover:bg-red-600" style="font-size: 9px; line-height: 1;">✕</button>
+            <img src="${url}" class="object-cover w-full h-full cursor-pointer">
+            <input type="file" accept="image/*" class="hidden">
+            <div class="absolute inset-x-0 bottom-0 items-center justify-center hidden gap-2 py-0.5 text-white bg-black bg-opacity-60 group-hover:flex" style="font-size: 9px; line-height: 1.4;">
+                <button type="button" class="hover:underline" data-edit-btn>Edit</button>
+                <button type="button" class="text-red-300 hover:underline" data-delete-btn>Delete</button>
+            </div>
         `;
         wrapper.querySelector('img').addEventListener('click', () => openExpenseImageModal(url, `expense-images-${expenseId}`));
-        wrapper.querySelector('button').addEventListener('click', e => {
+        wrapper.querySelector('input[type=file]').addEventListener('change', function () {
+            handleExpenseImageEditChange(this, expenseId, imageId);
+        });
+        wrapper.querySelector('[data-edit-btn]').addEventListener('click', e => {
+            e.stopPropagation();
+            triggerNearestFileInput(e.target);
+        });
+        wrapper.querySelector('[data-delete-btn]').addEventListener('click', e => {
             e.stopPropagation();
             deleteExpenseImage(expenseId, imageId);
         });

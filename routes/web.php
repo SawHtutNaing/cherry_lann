@@ -98,8 +98,9 @@ Route::get('users/{user}/profit-logs', UserProfitLogManagement::class)->name('us
     Route::get('/service-types', ServiceTypeManagement::class)->name('service_type.index');
     Route::get('/expense-management', ExpenseManagement::class)->name('expense_management.index');
 
-    // Expense image upload/delete
+    // Expense image upload/edit/delete
     Route::post('expenses/{expense}/images', [ExpenseImageController::class, 'upload'])->name('expenses.images.upload');
+    Route::post('expenses/{expense}/images/{image}', [ExpenseImageController::class, 'update'])->name('expenses.images.update');
     Route::delete('expenses/{expense}/images/{image}', [ExpenseImageController::class, 'destroy'])->name('expenses.images.destroy');
 
 
