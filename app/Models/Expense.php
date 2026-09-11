@@ -17,4 +17,9 @@ class Expense extends Model
     {
         return $this->belongsTo(ExpenseCategory::class);
     }
+
+    public function images()
+    {
+        return $this->hasMany(ExpenseImage::class);
+    }
 }
