@@ -24,46 +24,46 @@ return new class extends Migration
      */
     private array $legacyColumns = ['image_path', 'image', 'photo', 'photo_path'];
 
-    public function up(): void
-    {
-        $existing = array_values(array_filter(
-            $this->legacyColumns,
-            fn ($column) => Schema::hasColumn('visas', $column)
-        ));
+    // public function up(): void
+    // {
+    //     $existing = array_values(array_filter(
+    //         $this->legacyColumns,
+    //         fn ($column) => Schema::hasColumn('visas', $column)
+    //     ));
 
-        if (empty($existing)) {
-            return;
-        }
+    //     if (empty($existing)) {
+    //         return;
+    //     }
 
-        DB::table('visas')
-            ->select(array_merge(['id'], $existing))
-            ->orderBy('id')
-            ->chunkById(100, function ($rows) use ($existing) {
-                foreach ($rows as $row) {
-                    foreach ($existing as $column) {
-                        $path = $row->{$column} ?? null;
+    //     DB::table('visas')
+    //         ->select(array_merge(['id'], $existing))
+    //         ->orderBy('id')
+    //         ->chunkById(100, function ($rows) use ($existing) {
+    //             foreach ($rows as $row) {
+    //                 foreach ($existing as $column) {
+    //                     $path = $row->{$column} ?? null;
 
-                        if (!empty($path)) {
-                            DB::table('visa_images')->insert([
-                                'visa_id'    => $row->id,
-                                'image_path' => $path,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ]);
-                        }
-                    }
-                }
-            });
+    //                     if (!empty($path)) {
+    //                         DB::table('visa_images')->insert([
+    //                             'visa_id'    => $row->id,
+    //                             'image_path' => $path,
+    //                             'created_at' => now(),
+    //                             'updated_at' => now(),
+    //                         ]);
+    //                     }
+    //                 }
+    //             }
+    //         });
 
-        Schema::table('visas', function (Blueprint $table) use ($existing) {
-            $table->dropColumn($existing);
-        });
-    }
+    //     Schema::table('visas', function (Blueprint $table) use ($existing) {
+    //         $table->dropColumn($existing);
+    //     });
+    // }
 
-    public function down(): void
-    {
-        // Data-only / conditional structural migration — nothing meaningful to reverse.
-        // If you need the columns back, re-add them manually; the copied
-        // visa_images rows are left in place.
-    }
+    // public function down(): void
+    // {
+    //     // Data-only / conditional structural migration — nothing meaningful to reverse.
+    //     // If you need the columns back, re-add them manually; the copied
+    //     // visa_images rows are left in place.
+    // }
 };
