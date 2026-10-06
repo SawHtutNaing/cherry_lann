@@ -16,15 +16,6 @@
                         <x-application-logo class="block w-auto text-gray-800 fill-current h-9" />
                     </a>
                 </div>
-
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    @foreach ($navLinks as $link)
-                        <x-nav-link :href="route($link['route'])" :active="request()->routeIs($link['route'])">
-                            {{ __($link['label']) }}
-                        </x-nav-link>
-                    @endforeach
-                </div>
             </div>
 
             <!-- Settings Dropdown -->
@@ -79,6 +70,17 @@
                             stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
+            </div>
+        </div>
+
+        <!-- Primary Nav Links — wraps onto multiple lines instead of overflowing when there are many menus -->
+        <div class="hidden py-2 border-t border-gray-100 sm:block">
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-1">
+                @foreach ($navLinks as $link)
+                    <x-nav-link :href="route($link['route'])" :active="request()->routeIs($link['route'])">
+                        {{ __($link['label']) }}
+                    </x-nav-link>
+                @endforeach
             </div>
         </div>
     </div>
