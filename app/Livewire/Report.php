@@ -81,6 +81,7 @@ class Report extends Component
     // data_inputs for status/user/customer filters) instead of the record level.
     $itemsQuery = \App\Models\DataInputItem::query()
         ->join('data_inputs', 'data_inputs.id', '=', 'data_input_items.data_input_id')
+        ->whereNull('data_inputs.deleted_at') // raw join bypasses DataInput's soft-delete scope
         ->when($this->startDate && $this->endDate, function ($q) {
             $q->whereBetween('data_input_items.start_date', [$this->startDate, $this->endDate]);
         })

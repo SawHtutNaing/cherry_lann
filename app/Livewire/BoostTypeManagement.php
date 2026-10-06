@@ -4,6 +4,9 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\BoostType;
+use App\Models\DataInput;
+use App\Models\DataInputItem;
+use Illuminate\Support\Facades\DB;
 
 class BoostTypeManagement extends Component
 {
@@ -73,7 +76,20 @@ class BoostTypeManagement extends Component
     public function delete($boostTypeId)
     {
         try {
-            BoostType::findOrFail($boostTypeId)->delete();
+            DB::transaction(function () use ($boostTypeId) {
+                // Soft-delete every Data Input that used this service type, so they
+                // drop out of the lists along with it, then soft-delete the type itself.
+                $dataInputIds = DataInputItem::where('boost_type_id', $boostTypeId)
+                    ->pluck('data_input_id')
+                    ->unique();
+
+                if ($dataInputIds->isNotEmpty()) {
+                    DataInput::whereIn('id', $dataInputIds)->delete();
+                }
+
+                BoostType::findOrFail($boostTypeId)->delete();
+            });
+
             $this->loadBoostTypes();
             session()->flash('success', 'Boost Type deleted successfully!');
         } catch (\Exception $e) {

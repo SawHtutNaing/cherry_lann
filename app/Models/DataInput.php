@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\BoostStatus;
 
 class DataInput extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'page_name', 'customer_name', 'phone', 'status', 'user_id',
         'total_amount', 'is_remark', 'remark',

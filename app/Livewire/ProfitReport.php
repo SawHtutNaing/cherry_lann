@@ -121,6 +121,7 @@ class ProfitReport extends Component
             }
 
             $itemsQuery = DataInputItem::with('dataInput')
+                ->whereHas('dataInput') // excludes items whose Data Input was soft-deleted
                 ->whereIn('boost_type_id', $boostTypeIds)
                 ->whereBetween('start_date', [$this->startDate, $this->endDate]);
 

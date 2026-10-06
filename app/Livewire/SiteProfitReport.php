@@ -88,6 +88,7 @@ class SiteProfitReport extends Component
 
         // Pull all items across every boost type in one query, keyed by boost_type_id
         $items = DataInputItem::with('dataInput')
+            ->whereHas('dataInput') // excludes items whose Data Input was soft-deleted
             ->whereIn('boost_type_id', $allBoostTypeIds)
             ->whereBetween('start_date', [$this->startDate, $this->endDate])
             ->get()
