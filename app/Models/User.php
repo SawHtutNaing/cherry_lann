@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\Scopes\HideSuperAdminScope;
 
 class User extends Authenticatable
 {
@@ -57,10 +56,5 @@ class User extends Authenticatable
     public function profitLogs()
     {
         return $this->hasMany(UserProfitLog::class);
-    }
-
-    protected static function booted(): void
-    {
-        static::addGlobalScope(new HideSuperAdminScope);
     }
 }

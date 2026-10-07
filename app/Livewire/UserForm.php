@@ -36,6 +36,11 @@ class UserForm extends Component
         if ($userId) {
             $user = User::findOrFail($userId);
 
+            // The super_admin account isn't managed through this form (no 'super_admin'
+            // option in the role field below) — editing it here would silently
+            // downgrade its role on save.
+            abort_if($user->role === 'super_admin', 404);
+
             $this->userId = $user->id;
             $this->name = $user->name;
             $this->email = $user->email;
@@ -51,6 +56,7 @@ class UserForm extends Component
 
         if ($this->userId) {
             $user = User::findOrFail($this->userId);
+            abort_if($user->role === 'super_admin', 404);
             $user->update([
                 'name' => $this->name,
                 'email' => $this->email,

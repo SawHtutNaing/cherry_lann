@@ -16,7 +16,7 @@ class UserManagement extends Component
 
     public function mount()
     {
-        $this->users = User::all();
+        $this->users = User::where('role', '!=', 'super_admin')->get();
         if (!in_array(auth()->user()->role, ['admin', 'super_admin'])) {
             return redirect()->route('dashboard');
         }
@@ -25,19 +25,19 @@ class UserManagement extends Component
 
     public function toggleStatus(User $user)
     {
-       if (!in_array(auth()->user()->role, ['admin', 'super_admin']) || auth()->id() === $user->id) {
+       if (!in_array(auth()->user()->role, ['admin', 'super_admin']) || auth()->id() === $user->id || $user->role === 'super_admin') {
             return;
         }
 
         $user->status = !$user->status;
         $user->save();
-        $this->users = User::all();
+        $this->users = User::where('role', '!=', 'super_admin')->get();
         session()->flash('message', 'User status updated successfully.');
     }
 
     public function delete(User $user)
     {
-              if (!in_array(auth()->user()->role, ['admin', 'super_admin']) || auth()->id() === $user->id) {
+              if (!in_array(auth()->user()->role, ['admin', 'super_admin']) || auth()->id() === $user->id || $user->role === 'super_admin') {
             return;
         }
 
@@ -53,7 +53,7 @@ class UserManagement extends Component
         }
 
         $user->delete();
-        $this->users = User::all();
+        $this->users = User::where('role', '!=', 'super_admin')->get();
         session()->flash('message', 'User and all associated data deleted successfully.');
     }
 
