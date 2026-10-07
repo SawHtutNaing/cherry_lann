@@ -43,7 +43,7 @@
                 <div class="w-full md:w-1/4">
                     <label for="service_by" class="block text-sm font-medium text-gray-700">Service By</label>
                     <select
-                        @disabled(auth()->user()->role != 'admin')
+                        @disabled(!in_array(auth()->user()->role, ['admin', 'super_admin']))
                         wire:model="service_by"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">All</option>
