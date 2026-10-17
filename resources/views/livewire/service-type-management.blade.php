@@ -187,15 +187,15 @@
                 <form wire:submit.prevent="save">
                     <div class="mb-4">
                         <label for="name" class="block mb-1 text-sm font-medium text-gray-700">Name</label>
-                        <input type="text" id="name" wire:model="name"
+                        <input type="text" id="name" wire:model="name" value="{{ $name }}"
                             class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                     </div>
                     <div class="mb-4">
                         <label for="type" class="block mb-1 text-sm font-medium text-gray-700">Type</label>
                         <select id="type" wire:model="type"
                             class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <option value="mmk">MMK</option>
-                            <option value="dollar">Dollar</option>
+                            <option value="mmk" @selected($type === 'mmk')>MMK</option>
+                            <option value="dollar" @selected($type === 'dollar')>Dollar</option>
                         </select>
                     </div>
 
@@ -206,6 +206,7 @@
                                 <label class="flex items-center gap-2 text-sm text-gray-700">
                                     <input type="checkbox" value="{{ $boostType->id }}"
                                         wire:model="selectedBoostTypes"
+                                        @checked(in_array($boostType->id, $selectedBoostTypes))
                                         class="rounded border-gray-300 text-blue-500 focus:ring-blue-400">
                                     {{ $boostType->name }}
                                 </label>
@@ -248,21 +249,21 @@
                         <label for="exchangeAmount" class="block mb-1 text-sm font-medium text-gray-700">
                             Rate (1$ = ? MMK)
                         </label>
-                        <input type="number" step="0.01" id="exchangeAmount" wire:model="exchangeAmount"
+                        <input type="number" step="0.01" id="exchangeAmount" wire:model="exchangeAmount" value="{{ $exchangeAmount }}"
                             class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                     </div>
                     <div>
                         <label for="exchangeStartDate" class="block mb-1 text-sm font-medium text-gray-700">
                             Start Date
                         </label>
-                        <input type="date" id="exchangeStartDate" wire:model="exchangeStartDate"
+                        <input type="date" id="exchangeStartDate" wire:model="exchangeStartDate" value="{{ $exchangeStartDate }}"
                             class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                     </div>
                     <div>
                         <label for="exchangeEndDate" class="block mb-1 text-sm font-medium text-gray-700">
                             End Date <span class="text-gray-400">(optional)</span>
                         </label>
-                        <input type="date" id="exchangeEndDate" wire:model="exchangeEndDate"
+                        <input type="date" id="exchangeEndDate" wire:model="exchangeEndDate" value="{{ $exchangeEndDate }}"
                             class="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
                     </div>
                     <div class="flex items-end gap-2">
